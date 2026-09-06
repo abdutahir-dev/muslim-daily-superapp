@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // User profile, preferences, bookmarks, and trackers
+    match /users/{userId} {
+      allow read, write: if isValidId(userId) && isOwner(userId);
+      
+      // Subcollections for user data
+      match /{allSubcollections=**} {
+        allow read, write: if isValidId(userId) && isOwner(userId);
+      }
+    }
+
+    // Community daily stats or global shared content
+    match /community/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(docId);
+    }
+  }
+}

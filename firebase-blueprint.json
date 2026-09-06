@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile, app preferences, bookmarks, habits, and spiritual progress",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "isAnonymous": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "lifetimeDhikrCount": { "type": "number" },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "calculationMethod": { "type": "string", "enum": ["MWL", "ISNA", "Egypt", "Makkah", "Karachi", "Gulf"] },
+            "juristicSchool": { "type": "string", "enum": ["standard", "hanafi"] },
+            "hijriAdjustmentDays": { "type": "number" },
+            "adhanEnabled": { "type": "boolean" },
+            "adhanVoice": { "type": "string", "enum": ["makkah", "madinah", "alafasy"] },
+            "arabicFontSize": { "type": "string", "enum": ["md", "lg", "xl"] },
+            "arabicScript": { "type": "string", "enum": ["uthmani", "indopak"] },
+            "showTransliteration": { "type": "boolean" },
+            "hapticFeedback": { "type": "boolean" },
+            "city": { "type": "string", "maxLength": 100 },
+            "country": { "type": "string", "maxLength": 100 },
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" },
+            "timeFormat24h": { "type": "boolean" },
+            "onboardingCompleted": { "type": "boolean" },
+            "notificationsEnabled": { "type": "boolean" },
+            "fajrWakeupOffsetMinutes": { "type": "number" },
+            "dailyGoalQuranPages": { "type": "number" },
+            "dailyGoalTasbihCount": { "type": "number" }
+          }
+        },
+        "bookmarks": { "type": "array" },
+        "habits": { "type": "object" },
+        "zakatState": { "type": "object" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile, spiritual preferences, and synced prayer records"
+    }
+  }
+}

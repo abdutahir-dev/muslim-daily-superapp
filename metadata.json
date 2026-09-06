@@ -1,0 +1,6 @@
+{
+  "name": "Muslim Daily SuperApp",
+  "description": "Unified Islamic daily companion integrating Prayer Times & Adhan, Holy Quran with recitation, Qibla Compass, Digital Tasbih, Adhkar, Habit Tracker, Zakat Calculator, Halal & Mosque Finder, with Firebase Auth & shared preferences.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
