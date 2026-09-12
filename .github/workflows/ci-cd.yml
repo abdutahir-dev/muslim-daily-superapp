@@ -37,7 +37,7 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Deploy to Production
+    name: Deploy to Firebase Hosting
     needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -65,10 +65,21 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
+      - name: Check Firebase Service Account Secret
+        id: check_secret
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "::warning ::FIREBASE_SERVICE_ACCOUNT secret is not configured in GitHub repository secrets. Skipping automated deployment."
+            echo "has_secret=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_secret=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy to Firebase Hosting
+        if: steps.check_secret.outputs.has_secret == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID || "gen-lang-client-0725368052" }}'

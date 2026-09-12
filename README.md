@@ -344,5 +344,14 @@ The build script compiles the client SPA into `dist/` and packages the server in
 Automated GitHub Actions workflow (`.github/workflows/ci-cd.yml`):
 1. **Lint & Typecheck**: Runs `tsc --noEmit` to ensure strict type compliance.
 2. **Build Verification**: Executes `npm run build` validating both frontend assets and backend server compilation.
-3. **Deployment**: Deploys the static frontend to Firebase Hosting / Cloud Run upon successful main branch merge.
+3. **Automated Deployment**: Deploys the static frontend to Firebase Hosting upon merges to `main`.
+
+### GitHub Secrets Configuration
+To enable automatic deployment to Firebase Hosting via GitHub Actions, configure the following secrets in your repository settings (**Settings > Secrets and variables > Actions**):
+
+| Secret Name | Description | Example / How to Obtain |
+|---|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase Service Account JSON key string | Run `firebase init hosting:github` or download a service account JSON from Google Cloud IAM / Firebase Console -> Project Settings -> Service Accounts. |
+| `FIREBASE_PROJECT_ID` | *(Optional)* Firebase Project ID | `gen-lang-client-0725368052` (defaults to project ID in config if omitted) |
+| `GEMINI_API_KEY` | *(Optional)* Google Gemini API Key | Provided in Google AI Studio |
 
