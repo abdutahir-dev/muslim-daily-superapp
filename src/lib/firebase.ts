@@ -13,6 +13,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import {
+  initializeFirestore,
   getFirestore,
   doc,
   getDoc,
@@ -42,11 +43,23 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 // Auth instance
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+});
 
-// Firestore instance with the dedicated database ID
-export const db = config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)"
-  ? getFirestore(app, config.firestoreDatabaseId)
-  : getFirestore(app);
+// Firestore instance with the dedicated database ID and long-polling for proxy/iframe stability
+const databaseId =
+  config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)"
+    ? config.firestoreDatabaseId
+    : "(default)";
+
+export const db = initializeFirestore(
+  app,
+  {
+    experimentalForceLongPolling: true,
+  },
+  databaseId
+);
 
 export {
   GoogleAuthProvider,

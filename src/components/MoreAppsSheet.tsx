@@ -120,6 +120,15 @@ export const MoreAppsSheet: React.FC<MoreAppsSheetProps> = ({
       iconColor: "text-white",
     },
     {
+      id: "quotes",
+      title: "Wisdom & Quotes",
+      subtitle: "Timeless pearls & virtues",
+      arabic: "حِكَم وأقوال",
+      icon: Heart,
+      bgColor: "bg-[#FF2D55]",
+      iconColor: "text-white",
+    },
+    {
       id: "ai",
       title: "Ask Ilm AI",
       subtitle: "Gemini Islamic assistant",

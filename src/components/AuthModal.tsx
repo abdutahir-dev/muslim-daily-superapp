@@ -58,17 +58,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         setSuccessMsg("Password reset link sent to your email.");
       }
     } catch (err: any) {
-      console.error("Auth error:", err);
+      const code = err?.code || "";
       let message = "Authentication failed. Please verify your credentials.";
-      if (err.code === "auth/email-already-in-use") {
+      if (code === "auth/email-already-in-use") {
         message = "This email is already registered. Please sign in instead.";
-      } else if (err.code === "auth/weak-password") {
+      } else if (code === "auth/weak-password") {
         message = "Password must be at least 6 characters.";
-      } else if (err.code === "auth/invalid-credential" || err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+      } else if (
+        code === "auth/invalid-credential" ||
+        code === "auth/user-not-found" ||
+        code === "auth/wrong-password" ||
+        code === "auth/invalid-email"
+      ) {
         message = "Invalid email or password.";
-      } else if (err.code === "auth/popup-closed-by-user") {
-        message = "Sign-in popup was closed before completion.";
+      } else if (
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request"
+      ) {
+        message = "Sign-in was cancelled.";
+      } else if (code === "auth/too-many-requests") {
+        message = "Too many attempts. Please try again in a few moments.";
+      } else if (err?.message) {
+        message = err.message;
       }
+      console.warn("Auth request info:", code || err?.message || err);
       setErrorMsg(message);
     } finally {
       setLoading(false);
@@ -82,9 +95,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await signInWithGoogle();
       onClose();
     } catch (err: any) {
-      console.error("Google sign in error:", err);
-      if (err.code !== "auth/popup-closed-by-user") {
-        setErrorMsg("Failed to sign in with Google. You can try email login instead.");
+      const code = err?.code || "";
+      if (
+        code === "auth/popup-closed-by-user" ||
+        code === "auth/cancelled-popup-request"
+      ) {
+        // Expected user action when dismissing the Google sign-in window
+        console.info("Google sign-in popup was dismissed by user.");
+        // Clear or show subtle status instead of an error state
+        setErrorMsg("Google sign-in was cancelled. You can try again or use email sign-in.");
+      } else if (code === "auth/popup-blocked") {
+        console.warn("Google sign-in popup blocked by browser:", err);
+        setErrorMsg(
+          "The sign-in popup was blocked by your browser. Please allow popups or use email sign-in below."
+        );
+      } else if (code === "auth/unauthorized-domain") {
+        console.warn("Google sign-in unauthorized domain:", err);
+        setErrorMsg(
+          "This domain is not yet authorized in Firebase Console. Please use email sign-in or guest mode."
+        );
+      } else {
+        console.warn("Google sign in notice:", err?.message || err);
+        setErrorMsg("Failed to sign in with Google. You can use email login instead.");
       }
     } finally {
       setLoading(false);
@@ -102,7 +134,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await signInAsGuest();
       onClose();
     } catch (err) {
-      console.error("Guest error:", err);
+      console.warn("Guest mode notice:", err);
+      setErrorMsg("Could not enter guest mode. Please try again.");
     } finally {
       setLoading(false);
     }

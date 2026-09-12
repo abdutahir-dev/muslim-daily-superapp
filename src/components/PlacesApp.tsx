@@ -31,7 +31,7 @@ export const PlacesApp: React.FC = () => {
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Failed to fetch places", err);
+        console.warn("Notice: Failed to fetch places:", err);
         setLoading(false);
       });
   }, [categoryFilter, searchQuery]);

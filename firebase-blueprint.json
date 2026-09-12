@@ -38,12 +38,24 @@
         "habits": { "type": "object" },
         "zakatState": { "type": "object" }
       }
+    },
+    "TestConnection": {
+      "title": "TestConnection",
+      "description": "Health check document for verifying Firestore connection",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "maxLength": 64 }
+      }
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User profile, spiritual preferences, and synced prayer records"
+    },
+    "/test/{docId}": {
+      "schema": "TestConnection",
+      "description": "Health check path for testing connection"
     }
   }
 }

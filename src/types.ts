@@ -2,6 +2,7 @@ export type MiniAppId =
   | "home"
   | "prayer"
   | "quran"
+  | "quotes"
   | "qibla"
   | "tasbih"
   | "adhkar"
@@ -22,6 +23,30 @@ export type CalculationMethod =
   | "Gulf"; // Gulf 19.5°, 90 min
 
 export type JuristicSchool = "standard" | "hanafi"; // standard = Shafi'i, Maliki, Hanbali
+
+export type QuranReadingStyle =
+  | "hafs" // Hafs 'an 'Asim (Global standard)
+  | "duri" // Ad-Duri 'an Abi 'Amr (Sudan, Somalia, Ethiopia, Horn of Africa)
+  | "warsh" // Warsh 'an Nafi' (North & West Africa, Maghreb)
+  | "qalun" // Qalun 'an Nafi' (Libya, Tunisia, Chad)
+  | "soussi" // As-Soussi 'an Abi 'Amr (Al-Idgham Al-Kabir)
+  | "shubah" // Shu'bah 'an 'Asim (Kufan transmission)
+  | "khalaf" // Khalaf 'an Hamzah (Sakt & Hamz)
+  | "al_duri_kisai"; // Ad-Duri 'an Al-Kisa'i (Imalah)
+
+export interface QiraatDifferenceItem {
+  surahNumber: number;
+  ayahNumber: number;
+  wordLocation?: string;
+  topic: string;
+  hafsText: string;
+  variantText: string;
+  style: QuranReadingStyle;
+  styleNameArabic: string;
+  styleNameEnglish: string;
+  pronunciationNotes: string;
+  meaningInsight: string;
+}
 
 export interface UserPreferences {
   calculationMethod: CalculationMethod;
@@ -44,6 +69,9 @@ export interface UserPreferences {
   dailyGoalQuranPages: number;
   dailyGoalTasbihCount: number;
   theme: "light" | "dark" | "system";
+  quranTranslation: "amharic" | "english" | "both";
+  quranReadingStyle: QuranReadingStyle;
+  quranReciterId: string;
 }
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -67,6 +95,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   dailyGoalQuranPages: 4,
   dailyGoalTasbihCount: 100,
   theme: "light",
+  quranTranslation: "amharic",
+  quranReadingStyle: "hafs",
+  quranReciterId: "alafasy",
 };
 
 export interface PrayerTimeItem {
@@ -108,6 +139,7 @@ export interface SurahMeta {
   nameArabic: string;
   nameEnglish: string;
   translationEnglish: string;
+  translationAmharic?: string;
   revelationType: "Meccan" | "Medinan";
   totalVerses: number;
   juzNumber: number;
@@ -119,8 +151,11 @@ export interface AyahItem {
   textArabic: string;
   transliteration: string;
   translation: string;
+  translationAmharic?: string;
   audioUrl?: string;
   juz: number;
+  readingStyle?: QuranReadingStyle;
+  qiraatDifferences?: QiraatDifferenceItem[];
 }
 
 export interface QuranBookmark {
@@ -160,6 +195,48 @@ export interface AdhkarItem {
   translation: string;
   reference: string;
   targetCount: number;
+}
+
+export interface PrayerRecordDetail {
+  completed: boolean;
+  onTime: boolean;
+  inJamaah: boolean;
+  isLate?: boolean;
+  isExcused?: boolean;
+  notes?: string;
+  loggedAt?: string;
+}
+
+export interface SolatyDayTracking {
+  date: string; // YYYY-MM-DD
+  prayers: {
+    fajr: PrayerRecordDetail;
+    dhuhr: PrayerRecordDetail;
+    asr: PrayerRecordDetail;
+    maghrib: PrayerRecordDetail;
+    isha: PrayerRecordDetail;
+  };
+  sunnah: {
+    fajr_sunnah: boolean;
+    dhuhr_qebliyah: boolean;
+    dhuhr_baediyah: boolean;
+    asr_qebliyah: boolean;
+    maghrib_baediyah: boolean;
+    isha_baediyah: boolean;
+    witr: boolean;
+  };
+  nawafil: {
+    duha: boolean;
+    tahajjud: boolean;
+    ishraq: boolean;
+    awwabin: boolean;
+  };
+  fasting: "none" | "ramadan" | "sunnah_monday" | "sunnah_thursday" | "white_days" | "voluntary" | "qada";
+  journal: {
+    note: string;
+    mood?: "peaceful" | "hopeful" | "seeking_forgiveness" | "grateful" | "contemplative";
+    updatedAt?: string;
+  };
 }
 
 export interface HabitTrackerDay {

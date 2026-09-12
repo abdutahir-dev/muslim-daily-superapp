@@ -12,14 +12,26 @@ import {
   Sunrise,
   Sunset,
   Info,
+  ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { calculatePrayerTimes, getHijriDate } from "../lib/prayerTimes";
 import { CalculationMethod, JuristicSchool } from "../types";
 import { ADHAN_AUDIO_SOURCES } from "../lib/soundUtils";
+import { SolatySanctuaryApp } from "./SolatySanctuaryApp";
 
-export const PrayerTimesApp: React.FC = () => {
+interface PrayerTimesAppProps {
+  onOpenAuth?: () => void;
+  onOpenSettings?: () => void;
+}
+
+export const PrayerTimesApp: React.FC<PrayerTimesAppProps> = ({
+  onOpenAuth,
+  onOpenSettings,
+}) => {
   const { preferences, updatePreferences, requestGeolocation } = useAuth();
+  const [viewMode, setViewMode] = useState<"sanctuary" | "timetable">("sanctuary");
   const [schedule, setSchedule] = useState(() => calculatePrayerTimes(new Date(), preferences));
   const [isPlayingAdhan, setIsPlayingAdhan] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
@@ -39,6 +51,16 @@ export const PrayerTimesApp: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [preferences, selectedDayOffset]);
+
+  if (viewMode === "sanctuary") {
+    return (
+      <SolatySanctuaryApp
+        onSwitchToTimetable={() => setViewMode("timetable")}
+        onOpenAuth={onOpenAuth}
+        onOpenSettings={onOpenSettings}
+      />
+    );
+  }
 
   const toggleAdhanPreview = () => {
     if (isPlayingAdhan && audioElement) {
@@ -80,6 +102,16 @@ export const PrayerTimesApp: React.FC = () => {
 
   return (
     <div id="prayer-times-mini-app" className="space-y-4 pb-20">
+      {/* Return to Solaty Sanctuary Button */}
+      <button
+        type="button"
+        onClick={() => setViewMode("sanctuary")}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#007A78]/10 text-[#007A78] hover:bg-[#007A78]/20 transition-all active:scale-95 cursor-pointer"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Return to Solaty Prayer Sanctuary</span>
+      </button>
+
       {/* iOS Navigation Header Card */}
       <div className="ios-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

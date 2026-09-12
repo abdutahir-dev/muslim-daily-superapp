@@ -5,6 +5,7 @@ import {
   BookOpen,
   Clock,
   CircleDot,
+  Heart,
   Layers,
 } from "lucide-react";
 import { MiniAppId } from "../types";
@@ -20,13 +21,13 @@ export const TabBar: React.FC<TabBarProps> = ({
   onSelectTab,
   onOpenMoreMenu,
 }) => {
-  const isMoreActive = ["qibla", "adhkar", "habits", "zakat", "places", "ai"].includes(activeTab);
+  const isMoreActive = ["qibla", "tasbih", "adhkar", "habits", "zakat", "places", "ai"].includes(activeTab);
 
   const tabs: { id: MiniAppId; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: "home", label: "Today", icon: Home },
-    { id: "prayer", label: "Prayer", icon: Clock },
+    { id: "home", label: "Home", icon: Home },
     { id: "quran", label: "Quran", icon: BookOpen },
-    { id: "tasbih", label: "Tasbih", icon: CircleDot },
+    { id: "quotes", label: "Quotes", icon: Heart },
+    { id: "prayer", label: "Prayers", icon: Clock },
   ];
 
   return (

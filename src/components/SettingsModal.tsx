@@ -16,9 +16,12 @@ import {
   Vibrate,
   Play,
   Square,
+  Compass,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { CalculationMethod, JuristicSchool } from "../types";
+import { CalculationMethod, JuristicSchool, QuranReadingStyle } from "../types";
+import { READING_STYLES_LIST, RECITERS_CATALOG, getRecitersForReadingStyle } from "../lib/qiraatData";
+import { QiraatStyleSelector } from "./quran/QiraatStyleSelector";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -306,6 +309,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </span>
 
             <div className="ios-card divide-y divide-black/[0.06] overflow-hidden">
+              {/* Qira'at Reading Style Selector */}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <span className="text-xs font-semibold text-[#1C1C1E] flex items-center gap-1.5">
+                      <span>Canonical Reading Style (Qira'ah)</span>
+                      <span className="text-[10px] text-[#007A78] font-bold bg-[#007A78]/10 px-1.5 py-0.2 rounded">
+                        10 Riwayahs
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-[#8E8E93]">
+                      Choose authentic recitation style (Hafs, Ad-Duri, Warsh, Qalun...)
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <QiraatStyleSelector
+                    currentStyle={preferences.quranReadingStyle || "hafs"}
+                    onSelectStyle={(styleId) => updatePreferences({ quranReadingStyle: styleId })}
+                  />
+                </div>
+              </div>
+
               <div className="p-3 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-semibold text-[#1C1C1E] block">English Transliteration</span>
@@ -326,6 +352,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }`}
                   />
                 </button>
+              </div>
+
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <span className="text-xs font-semibold text-[#1C1C1E] block">Translation Edition</span>
+                    <span className="text-[10px] text-[#8E8E93]">አማርኛ (ሙሐመድ ሳኒ) or English (Sahih)</span>
+                  </div>
+                  <div className="ios-segmented-control flex items-center">
+                    {[
+                      { id: "amharic", label: "አማርኛ" },
+                      { id: "english", label: "English" },
+                      { id: "both", label: "Both" },
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => updatePreferences({ quranTranslation: item.id as any })}
+                        className={`px-2.5 py-1 text-xs font-semibold ios-segmented-button cursor-pointer ${
+                          (preferences.quranTranslation || "amharic") === item.id
+                            ? "ios-segmented-button-active"
+                            : "text-[#8E8E93]"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {(preferences.quranTranslation === "amharic" || preferences.quranTranslation === "both") && (
+                  <div className="text-[10px] text-[#007A78] bg-[#007A78]/8 rounded-lg p-2 border border-[#007A78]/15 mt-2 flex items-start gap-1.5">
+                    <span className="font-bold text-[#007A78] shrink-0">✓</span>
+                    <span>
+                      የቁርኣን የአማርኛ ትርጉም በታላቁ ሊቅ <strong>ሼክ ሙሐመድ ሳዲቅ እና ሐጂ ሙሐመድ ሳኒ ሐቢብ</strong> (ሳዲቅ & ሳኒ)።
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="p-3 flex items-center justify-between">

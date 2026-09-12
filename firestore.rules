@@ -33,5 +33,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isSignedIn() && isValidId(docId);
     }
+
+    // Health check test connection endpoint
+    match /test/{docId} {
+      allow read: if true;
+    }
   }
 }
