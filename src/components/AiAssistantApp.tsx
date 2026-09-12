@@ -7,25 +7,25 @@ import {
   Share2,
   Check,
   User,
+  BookOpen,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { apiClient, DeenBotChatMessage } from "../services/apiClient";
 
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  citations?: Array<{ title: string; reference: string; source: "Quran" | "Hadith" | "Scholar" }>;
   timestamp: string;
 }
 
 export const AiAssistantApp: React.FC = () => {
-  const { preferences } = useAuth();
-
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
       content:
-        "Assalamu Alaikum wa Rahmatullah! I am your Ilm AI Assistant. You can ask me questions regarding Islamic daily practices, Quranic verses, authentic Hadiths, Duas, and fasting etiquettes. How may I assist you today?",
+        "Assalamu Alaikum wa Rahmatullah! I am DeenBot, your Islamic Knowledge Assistant. You can ask me questions regarding Islamic daily practices, Quranic verses, authentic Hadiths, Duas, and fasting etiquettes. How may I assist you today?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -34,13 +34,13 @@ export const AiAssistantApp: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const suggestedQuestions = [
+  const [suggestedQuestions, setSuggestedQuestions] = useState([
     "What are the 12 Sunnah Rawatib prayers?",
     "Best Duas for anxiety and peace",
     "Fasting rules: Suhur cutoff time",
     "How is Zakat calculated on savings?",
     "Virtues of Surah Al-Kahf on Friday",
-  ];
+  ]);
 
   const handleSend = async (questionText?: string) => {
     const q = (questionText || inputQuestion).trim();
@@ -53,35 +53,37 @@ export const AiAssistantApp: React.FC = () => {
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     if (!questionText) setInputQuestion("");
     setLoading(true);
 
     try {
-      const response = await fetch("/api/ai/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: q,
-          language: "English",
-          context: {
-            city: preferences.city,
-            calculationMethod: preferences.calculationMethod,
-            juristicSchool: preferences.juristicSchool,
-          },
-        }),
+      const historyPayload: DeenBotChatMessage[] = newMessages.slice(-6).map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        content: m.content,
+      }));
+
+      const res = await apiClient.deenbot.chat({
+        message: q,
+        history: historyPayload,
+        language: "English",
       });
 
-      const data = await response.json();
       const botMsg: ChatMessage = {
         id: `b-${Date.now()}`,
         role: "assistant",
-        content: data.answer || "Thank you for your question. Please try asking again.",
+        content: res.reply || "May Allah grant you ease and beneficial knowledge.",
+        citations: res.citations,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
 
       setMessages((prev) => [...prev, botMsg]);
-    } catch (err) {
+
+      if (res.suggestedQuestions && res.suggestedQuestions.length > 0) {
+        setSuggestedQuestions(res.suggestedQuestions);
+      }
+    } catch {
       const errorMsg: ChatMessage = {
         id: `b-${Date.now()}`,
         role: "assistant",
@@ -111,15 +113,15 @@ export const AiAssistantApp: React.FC = () => {
           </div>
           <div>
             <h2 className="text-base font-semibold tracking-tight text-[#1C1C1E]">
-              Ask Ilm AI
+              DeenBot AI
             </h2>
-            <p className="text-[11px] text-[#8E8E93]">Islamic teachings, Quran context & daily fiqh</p>
+            <p className="text-[11px] text-[#8E8E93]">Islamic teachings, Quran context & authentic Hadith</p>
           </div>
         </div>
 
         <div className="flex items-center gap-1 text-[11px] font-semibold text-[#007A78] bg-[#007A78]/10 px-2.5 py-0.5 rounded-full">
           <Sparkles className="w-3 h-3" />
-          <span>Gemini</span>
+          <span>Gemini 2.5</span>
         </div>
       </div>
 
@@ -142,6 +144,7 @@ export const AiAssistantApp: React.FC = () => {
               key={i}
               type="button"
               onClick={() => handleSend(sq)}
+              disabled={loading}
               className="px-3 py-1.5 rounded-full bg-white border border-black/[0.08] text-xs font-medium text-[#1C1C1E] hover:border-[#007A78] active:scale-95 whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-xs"
             >
               {sq}
@@ -168,7 +171,7 @@ export const AiAssistantApp: React.FC = () => {
                   <span
                     className={`text-[11px] font-semibold ${isBot ? "text-[#1C1C1E]" : "text-white"}`}
                   >
-                    {isBot ? "Ilm Assistant" : "You"}
+                    {isBot ? "DeenBot" : "You"}
                   </span>
                 </div>
 
@@ -201,6 +204,21 @@ export const AiAssistantApp: React.FC = () => {
               >
                 {msg.content}
               </div>
+
+              {/* Citations */}
+              {msg.citations && msg.citations.length > 0 && (
+                <div className="mt-2.5 pt-2 border-t border-black/[0.06] space-y-1">
+                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#007A78]">
+                    <BookOpen className="w-3 h-3" />
+                    <span>Citations:</span>
+                  </div>
+                  {msg.citations.map((cite, idx) => (
+                    <div key={idx} className="text-[10.5px] text-[#8E8E93] bg-[#F2F2F7] p-1.5 rounded-md">
+                      <span className="font-medium text-[#1C1C1E]">{cite.title}</span> — {cite.reference} ({cite.source})
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -228,8 +246,8 @@ export const AiAssistantApp: React.FC = () => {
             type="text"
             value={inputQuestion}
             onChange={(e) => setInputQuestion(e.target.value)}
-            placeholder="Ask about Islamic practice or verses..."
-            className="flex-1 px-4 py-2 text-xs sm:text-sm bg-white rounded-full border border-black/[0.08] text-[#1C1C1E] placeholder:text-[#8E8E93] focus:outline-none focus:ring-2 focus:ring-[#007A78]/30 transition-all shadow-xs"
+            placeholder="Ask about prayers, Duas, Quran, Fiqh..."
+            className="flex-1 px-4 py-2 text-xs sm:text-sm bg-white rounded-full border border-black/[0.08] text-[#1C1C1E] placeholder:text-[#8E8E93] focus:outline-hidden focus:ring-2 focus:ring-[#007A78]/30 transition-all shadow-xs"
           />
           <button
             type="submit"

@@ -245,6 +245,7 @@ export class DashboardService {
     method?: string;
     school?: string;
     locationName?: string;
+    date?: Date;
   }): NextPrayerInfo {
     const lat = options.lat ?? 51.5074; // London default
     const lng = options.lng ?? -0.1278;
@@ -252,7 +253,7 @@ export class DashboardService {
     const method = METHOD_CONFIGS[methodKey] || METHOD_CONFIGS.MWL;
     const isHanafi = options.school === "hanafi";
 
-    const date = new Date();
+    const date = options.date || new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
