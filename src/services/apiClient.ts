@@ -308,11 +308,11 @@ const cacheManager = new OfflineCacheManager();
 
 const getBaseUrl = (): string => {
   const envUrl = (import.meta as any).env?.VITE_API_BASE_URL || "";
-  if (envUrl && envUrl.startsWith("http")) {
-    return envUrl.replace(/\/$/, "");
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.trim().replace(/\/$/, "");
   }
-  // Default to origin `/api`
-  return "/api";
+  // Default to backend service at https://abdutahir-dev.github.io/muslim-daily-server/api
+  return "https://abdutahir-dev.github.io/muslim-daily-server/api";
 };
 
 interface RequestOptions extends RequestInit {
