@@ -37,12 +37,21 @@ import { QuranAudioPlayer } from "./quran/QuranAudioPlayer";
 import { RandomAyahsGeneratorModal } from "./quran/RandomAyahsGeneratorModal";
 import { SurahHistoricalDetailsModal } from "./quran/SurahHistoricalDetailsModal";
 
-export const QuranApp: React.FC = () => {
+export interface QuranAppProps {
+  initialSurahNumber?: number;
+}
+
+export const QuranApp: React.FC<QuranAppProps> = ({ initialSurahNumber }) => {
   const { bookmarks, addBookmark, removeBookmark, preferences, updatePreferences } = useAuth();
 
   const [activeView, setActiveView] = useState<"surahs" | "qiraat" | "bookmarks">("surahs");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSurah, setSelectedSurah] = useState<SurahMeta | null>(null);
+  const [selectedSurah, setSelectedSurah] = useState<SurahMeta | null>(() => {
+    if (initialSurahNumber) {
+      return SURAH_LIST.find((s) => s.number === initialSurahNumber) || null;
+    }
+    return null;
+  });
   const [verses, setVerses] = useState<AyahItem[]>([]);
   const [loadingVerses, setLoadingVerses] = useState(false);
 
@@ -68,6 +77,12 @@ export const QuranApp: React.FC = () => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const handleOpenSurah = (surah: SurahMeta) => {
+    setSelectedSurah(surah);
+    setActiveView("surahs");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // Load verses when Surah or readingStyle changes
   useEffect(() => {
     if (!selectedSurah) {
@@ -79,6 +94,8 @@ export const QuranApp: React.FC = () => {
       setPlayingAyahIndex(null);
       return;
     }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     setLoadingVerses(true);
     fetchSurahVerses(selectedSurah.number, currentStyleId)
@@ -300,7 +317,7 @@ export const QuranApp: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setHistoryModalSurahNumber(selectedSurah.number)}
+              onClick={() => setHistoryModalSurahNumber(selectedSurah?.number ?? 1)}
               className="text-[11px] bg-[#007A78]/15 text-[#007A78] font-semibold px-2.5 py-1 rounded-full hover:bg-[#007A78]/25 flex items-center gap-1 shrink-0 cursor-pointer"
               title="View place of revelation, causes of revelation (Asbab al-Nuzul), and themes"
             >
@@ -333,14 +350,14 @@ export const QuranApp: React.FC = () => {
 
         {/* Surah Audio Player with Reciters for Active Riwayah */}
         <QuranAudioPlayer
-          surahNumber={selectedSurah.number}
-          surahNameEnglish={selectedSurah.nameEnglish}
+          surahNumber={selectedSurah?.number ?? 1}
+          surahNameEnglish={selectedSurah?.nameEnglish ?? "Surah"}
           readingStyle={currentStyleId}
           onReadingStyleChange={handleSelectReadingStyle}
         />
 
         {/* Bismillah Header */}
-        {selectedSurah.number !== 9 && (
+        {selectedSurah?.number !== 9 && (
           <div className="text-center py-4 ios-card">
             <p className="font-arabic text-2xl text-[#1C1C1E] tracking-wide">
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -377,9 +394,11 @@ export const QuranApp: React.FC = () => {
         ) : (
           <div className="space-y-3">
             {verses.map((ayah, index) => {
-              const isBookmarked = isAyahBookmarked(selectedSurah.number, ayah.numberInSurah);
+              const surahNum = selectedSurah?.number ?? 1;
+              const surahName = selectedSurah?.nameEnglish ?? "Surah";
+              const isBookmarked = isAyahBookmarked(surahNum, ayah.numberInSurah);
               const isCurrentPlaying = playingAyahIndex === index && isPlayingAudio;
-              const differences = getDifferencesForAyah(selectedSurah.number, ayah.numberInSurah);
+              const differences = getDifferencesForAyah(surahNum, ayah.numberInSurah);
 
               return (
                 <div
@@ -406,7 +425,7 @@ export const QuranApp: React.FC = () => {
                           onClick={() =>
                             setInspectingDifference({
                               difference: differences[0],
-                              surahName: selectedSurah.nameEnglish,
+                              surahName: surahName,
                               ayahNumber: ayah.numberInSurah,
                               arabicText: ayah.textArabic,
                             })
@@ -440,8 +459,8 @@ export const QuranApp: React.FC = () => {
                         type="button"
                         onClick={() =>
                           handleToggleBookmark(
-                            selectedSurah.number,
-                            selectedSurah.nameEnglish,
+                            surahNum,
+                            surahName,
                             ayah.numberInSurah
                           )
                         }
@@ -685,13 +704,13 @@ export const QuranApp: React.FC = () => {
       {/* VIEW: 10 QIRA'AT HUB */}
       {activeView === "qiraat" && (
         <QiraatHubView
-          activeStyle={currentStyleId}
+          currentStyle={currentStyleId}
           onSelectStyle={handleSelectReadingStyle}
-          onOpenSurah={(surahNum) => {
+          onOpenSurahWithStyle={(surahNum, style) => {
             const surah = SURAH_LIST.find((s) => s.number === surahNum);
             if (surah) {
-              setSelectedSurah(surah);
-              setActiveView("surahs");
+              handleSelectReadingStyle(style);
+              handleOpenSurah(surah);
             }
           }}
         />
@@ -720,7 +739,7 @@ export const QuranApp: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (surah) setSelectedSurah(surah);
+                        if (surah) handleOpenSurah(surah);
                       }}
                       className="flex items-center gap-2.5 text-left cursor-pointer flex-1"
                     >
@@ -758,17 +777,14 @@ export const QuranApp: React.FC = () => {
           {filteredSurahs.map((surah) => (
             <div
               key={surah.number}
-              className="ios-card p-3 flex items-center justify-between active:scale-[0.98] transition-all text-left group hover:border-[#007A78]/40"
+              onClick={() => handleOpenSurah(surah)}
+              className="ios-card p-3 flex items-center justify-between active:scale-[0.98] transition-all text-left group hover:border-[#007A78]/40 cursor-pointer"
             >
-              <button
-                type="button"
-                onClick={() => setSelectedSurah(surah)}
-                className="flex items-center gap-2.5 flex-1 cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-[10px] bg-[#767680]/10 text-[#1C1C1E] font-bold text-xs flex items-center justify-center font-mono group-hover:bg-[#007A78]/10 group-hover:text-[#007A78] transition-colors">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div className="w-8 h-8 rounded-[10px] bg-[#767680]/10 text-[#1C1C1E] font-bold text-xs flex items-center justify-center font-mono group-hover:bg-[#007A78]/10 group-hover:text-[#007A78] transition-colors shrink-0">
                   {surah.number}
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-semibold text-[#1C1C1E] group-hover:text-[#007A78] transition-colors">
                       {surah.nameEnglish}
@@ -786,9 +802,9 @@ export const QuranApp: React.FC = () => {
                     {surah.translationEnglish} • {surah.totalVerses}v
                   </span>
                 </div>
-              </button>
+              </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -800,10 +816,7 @@ export const QuranApp: React.FC = () => {
                 >
                   <Info className="w-4 h-4" />
                 </button>
-                <span
-                  onClick={() => setSelectedSurah(surah)}
-                  className="font-arabic text-base text-[#1C1C1E] group-hover:text-[#007A78] transition-colors cursor-pointer"
-                >
+                <span className="font-arabic text-base text-[#1C1C1E] group-hover:text-[#007A78] transition-colors">
                   {surah.nameArabic}
                 </span>
               </div>
@@ -819,8 +832,7 @@ export const QuranApp: React.FC = () => {
         onSelectSurahAndAyah={(surahNum, ayahNum) => {
           const surah = SURAH_LIST.find((s) => s.number === surahNum);
           if (surah) {
-            setSelectedSurah(surah);
-            setActiveView("surahs");
+            handleOpenSurah(surah);
             setTimeout(() => {
               const el = document.getElementById(`ayah-${ayahNum}`);
               if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -840,8 +852,8 @@ export const QuranApp: React.FC = () => {
           onSelectSurah={(num) => {
             const target = SURAH_LIST.find((s) => s.number === num);
             if (target) {
-              setSelectedSurah(target);
-              setActiveView("surahs");
+              setHistoryModalSurahNumber(null);
+              handleOpenSurah(target);
             }
           }}
         />

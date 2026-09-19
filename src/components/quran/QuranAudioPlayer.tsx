@@ -20,18 +20,24 @@ import {
 } from "../../lib/qiraatData";
 
 interface QuranAudioPlayerProps {
-  surah: SurahMeta;
+  surahNumber?: number;
+  surahNameEnglish?: string;
+  surah?: SurahMeta;
   readingStyle: QuranReadingStyle;
-  selectedReciterId: string;
-  onSelectReciter: (reciterId: string) => void;
+  selectedReciterId?: string;
+  onSelectReciter?: (reciterId: string) => void;
+  onReadingStyleChange?: (style: QuranReadingStyle) => void;
   onAyahAudioPlayingChange?: (isPlaying: boolean) => void;
 }
 
 export const QuranAudioPlayer: React.FC<QuranAudioPlayerProps> = ({
+  surahNumber,
+  surahNameEnglish,
   surah,
   readingStyle,
   selectedReciterId,
   onSelectReciter,
+  onReadingStyleChange,
   onAyahAudioPlayingChange,
 }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -44,12 +50,25 @@ export const QuranAudioPlayer: React.FC<QuranAudioPlayerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const targetSurahNum = surahNumber ?? surah?.number ?? 1;
+
   const availableReciters = getRecitersForReadingStyle(readingStyle);
+  const [internalReciterId, setInternalReciterId] = useState(availableReciters[0]?.id || "mishary_alafasy");
+  const activeReciterId = selectedReciterId || internalReciterId;
   const currentReciter =
-    availableReciters.find((r) => r.id === selectedReciterId) || availableReciters[0];
+    availableReciters.find((r) => r.id === activeReciterId) ||
+    availableReciters[0] || {
+      id: "mishary_alafasy",
+      nameEnglish: "Mishary Rashid Alafasy",
+      nameArabic: "مشاري راشد العفاسي",
+      country: "Kuwait",
+      style: "hafs_asim" as QuranReadingStyle,
+      moshafType: "murattal" as const,
+      serverUrl: "https://server8.mp3quran.net/afs/",
+    };
   const styleDetail = getReadingStyleDetail(readingStyle);
 
-  const currentAudioUrl = getSurahAudioUrl(currentReciter, surah.number);
+  const currentAudioUrl = getSurahAudioUrl(currentReciter, targetSurahNum);
 
   // When surah, readingStyle, or reciter changes, pause and reset
   useEffect(() => {
@@ -60,7 +79,7 @@ export const QuranAudioPlayer: React.FC<QuranAudioPlayerProps> = ({
       setDuration(0);
       setErrorMsg(null);
     }
-  }, [surah.number, currentReciter.id, readingStyle]);
+  }, [targetSurahNum, currentReciter.id, readingStyle]);
 
   useEffect(() => {
     if (onAyahAudioPlayingChange) {
@@ -217,7 +236,8 @@ export const QuranAudioPlayer: React.FC<QuranAudioPlayerProps> = ({
                         key={reciter.id}
                         type="button"
                         onClick={() => {
-                          onSelectReciter(reciter.id);
+                          setInternalReciterId(reciter.id);
+                          if (onSelectReciter) onSelectReciter(reciter.id);
                           setIsReciterMenuOpen(false);
                         }}
                         className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs transition-colors flex items-center justify-between cursor-pointer ${
