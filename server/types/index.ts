@@ -103,3 +103,5 @@ export interface DailyDashboardResponse {
   randomQuote: RandomQuoteItem;
 }
 
+export * from "./qamus.types";
+

@@ -46,12 +46,30 @@
       "properties": {
         "status": { "type": "string", "maxLength": 64 }
       }
+    },
+    "UserVocabulary": {
+      "title": "UserVocabulary",
+      "description": "User saved Qamus words and Arabic flashcards",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "word": { "type": "string" },
+        "tashkeel": { "type": "string" },
+        "meaningEnglish": { "type": "string" },
+        "meaningAmharic": { "type": "string" },
+        "root": { "type": "string" },
+        "timestamp": { "type": "number" }
+      }
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User profile, spiritual preferences, and synced prayer records"
+    },
+    "/users/{userId}/vocabulary/{wordId}": {
+      "schema": "UserVocabulary",
+      "description": "User personal Arabic vocabulary and study cards from Qamus"
     },
     "/test/{docId}": {
       "schema": "TestConnection",

@@ -119,4 +119,14 @@ export const MINI_APPS_MANIFEST: MiniAppMetadata[] = [
     isPrimaryTab: false,
     order: 11,
   },
+  {
+    id: "qamus",
+    title: "Qamus Lexicon",
+    subtitle: "Arabic dictionary, grammar (Nahw) & I'rab",
+    category: "knowledge",
+    iconName: "BookA",
+    badge: "Sarf & I'rab",
+    isPrimaryTab: false,
+    order: 12,
+  },
 ];

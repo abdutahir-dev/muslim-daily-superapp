@@ -11,6 +11,7 @@ import {
   BotMessageSquare,
   Home,
   X,
+  BookA,
 } from "lucide-react";
 import { MiniAppId } from "../types";
 
@@ -135,6 +136,15 @@ export const MoreAppsSheet: React.FC<MoreAppsSheetProps> = ({
       arabic: "المساعد",
       icon: BotMessageSquare,
       bgColor: "bg-[#5856D6]",
+      iconColor: "text-white",
+    },
+    {
+      id: "qamus",
+      title: "Qamus Lexicon",
+      subtitle: "Arabic dictionary & I'rab",
+      arabic: "الْقَامُوس",
+      icon: BookA,
+      bgColor: "bg-[#065F46]",
       iconColor: "text-white",
     },
   ];

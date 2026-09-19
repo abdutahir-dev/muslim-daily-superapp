@@ -10,7 +10,8 @@ export type MiniAppId =
   | "zakat"
   | "places"
   | "ai"
-  | "assistant";
+  | "assistant"
+  | "qamus";
 
 export type TabId = MiniAppId;
 
@@ -295,4 +296,124 @@ export interface PlaceItem {
     lat: number;
     lng: number;
   };
+}
+
+// ==========================================
+// Qamus Arabic Dictionary & Grammar Models
+// ==========================================
+export type QamusMode = "dictionary" | "grammar" | "translation" | "quranic" | "all";
+
+export interface QamusLookupRequest {
+  query: string;
+  mode?: QamusMode;
+  targetLanguage?: "English" | "Amharic" | "Both";
+  context?: string;
+}
+
+export interface QamusRootInfo {
+  root: string;
+  rootArabic: string;
+  transliteration: string;
+  generalMeaning: string;
+  occurrencesInQuran: number;
+}
+
+export interface QamusMorphologyForm {
+  formNumber: string;
+  past: string;
+  present: string;
+  verbalNoun: string;
+  activeParticiple: string;
+  passiveParticiple?: string;
+  meaning: string;
+}
+
+export interface QamusIrabElement {
+  word: string;
+  transliteration: string;
+  partOfSpeech: "فعل" | "اسم" | "حرف";
+  role: string;
+  caseOrState: string;
+  explanationEnglish: string;
+}
+
+export interface QamusQuranicOccurrence {
+  surahNumber: number;
+  ayahNumber: number;
+  surahNameArabic: string;
+  surahNameEnglish: string;
+  ayahArabic: string;
+  ayahTranslation: string;
+  highlightedWord: string;
+}
+
+export interface QamusEntry {
+  query: string;
+  normalizedQuery: string;
+  wordType: "noun" | "verb" | "particle" | "root" | "phrase";
+  tashkeel: string;
+  transliteration: string;
+  phoneticSpelling?: string;
+  rootInfo?: QamusRootInfo;
+  meanings: {
+    primaryEnglish: string;
+    primaryAmharic?: string;
+    secondaryEnglish?: string[];
+    classicalArabicDefinition?: string;
+    hansWehrEquivalent?: string;
+  };
+  grammar: {
+    partOfSpeechArabic: string;
+    partOfSpeechEnglish: string;
+    grammaticalGender?: "masculine" | "feminine";
+    number?: "singular" | "dual" | "plural";
+    pluralForm?: string;
+    patterns?: string;
+    irabAnalysis?: QamusIrabElement[];
+    morphologicalForms?: QamusMorphologyForm[];
+  };
+  synonyms: Array<{ arabic: string; english: string }>;
+  antonyms: Array<{ arabic: string; english: string }>;
+  examples: Array<{
+    arabic: string;
+    english: string;
+    amharic?: string;
+  }>;
+  quranicInsights?: {
+    totalOccurrences: number;
+    surahsWithHighFrequency: string[];
+    spiritualLesson: string;
+    keyVerses: QamusQuranicOccurrence[];
+  };
+  source: "gemini-ai" | "lexicon-db";
+  timestamp: number;
+}
+
+export interface QamusLookupResponse {
+  status: "success" | "error";
+  entry?: QamusEntry;
+  suggestedRoots?: QamusRootInfo[];
+  error?: string;
+  details?: string;
+}
+
+export interface QamusGrammarRule {
+  id: string;
+  titleArabic: string;
+  titleEnglish: string;
+  category: "sarf" | "nahw" | "harf" | "i'rab";
+  summary: string;
+  examples: Array<{ arabic: string; translation: string; note: string }>;
+  chart?: Array<{ label: string; formula: string; example: string }>;
+}
+
+export interface SavedQamusWord {
+  id: string;
+  word: string;
+  tashkeel: string;
+  meaningEnglish: string;
+  meaningAmharic?: string;
+  root?: string;
+  timestamp: number;
+  tags?: string[];
 }

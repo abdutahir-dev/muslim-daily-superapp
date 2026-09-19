@@ -1,4 +1,11 @@
 import { auth } from "../lib/firebase";
+import {
+  QamusEntry,
+  QamusGrammarRule,
+  QamusLookupRequest,
+  QamusLookupResponse,
+  QamusRootInfo,
+} from "../types";
 
 /**
  * Muslim Daily REST API Client & Firebase BaaS Service
@@ -563,6 +570,32 @@ export const apiClient = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request),
         skipCache: true,
+      });
+    },
+  },
+
+  /**
+   * 7. 📖 Qamus (Arabic Classical Dictionary, I'rab Grammar & Lexicon)
+   */
+  qamus: {
+    async lookup(params: QamusLookupRequest): Promise<QamusLookupResponse> {
+      return fetchWithRetry<QamusLookupResponse>("/qamus/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+        ttlMs: 1000 * 60 * 60 * 24 * 7, // Cache dictionary responses for 7 days
+      });
+    },
+
+    async getRoots(): Promise<{ roots: QamusRootInfo[] }> {
+      return fetchWithRetry<{ roots: QamusRootInfo[] }>("/qamus/roots", {
+        ttlMs: 1000 * 60 * 60 * 24 * 14,
+      });
+    },
+
+    async getGrammarRules(): Promise<{ rules: QamusGrammarRule[] }> {
+      return fetchWithRetry<{ rules: QamusGrammarRule[] }>("/qamus/grammar-rules", {
+        ttlMs: 1000 * 60 * 60 * 24 * 14,
       });
     },
   },

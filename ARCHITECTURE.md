@@ -4,11 +4,15 @@
 
 The **Muslim Daily SuperApp** is an enterprise-grade, mobile-first progressive web application engineered under a decoupled **SuperApp & Modular Mini-Application Architecture**. It consolidates 12 specialized Islamic utility modules—spanning astronomical prayer schedules, 10 canonical Quranic Qira'at with Amharic and English translations, a spherical sensor-driven Qibla compass, tactile Dhikr counters, Hisn al-Muslim supplications, habit tracking, Zakat computation, verified Halal geo-discovery, and an AI scholarly assistant powered by Google Gemini 2.5 Flash—into a unified, iOS Human Interface Guidelines (HIG)-compliant application shell.
 
-### Architectural Tenets
-1. **Decoupled SuperApp Container**: Host shell provides contextual navigation, global authentication, unified audio streaming, and preference synchronization, while individual Mini-Apps operate as isolated, self-contained functional domains.
-2. **Offline-First Resilience**: Multi-tier caching strategy (in-memory state, synchronous `localStorage` fallback, service worker PWA, and stale-while-revalidate network synchronization) guarantees that prayer times, supplications, and holy scripture remain accessible without network connectivity.
-3. **Zero Browser Secret Exposure**: All AI interactions with the Gemini 2.5 Flash SDK and third-party integrations run through a hardened Express backend proxy layer.
-4. **Strict Type Safety & Principle-of-Least-Privilege**: Written in strict TypeScript (5.8) across client and server, bound to granular Firestore security rules matching authenticated user UIDs.
+### 📑 Technical Documentation
+- **[Comprehensive SuperApp Guide (README.md)](./README.md)**: Developer guide, How to Make Mini-Apps step-by-step tutorial, getting started, and Cloud Run / Firebase deployment guide.
+- **[Parity Master Implementation Plan (PLAN.md)](./PLAN.md)**: Frontend-only architectural blueprint and route-by-route execution plan to achieve 100% functional and UI/UX parity with `https://muslim-daily.web.et/` via pure client engines and direct BaaS integrations.
+- **[Product & Engineering Roadmap (ROADMAP.md)](./ROADMAP.md)**: Strategic frontend roadmap and milestone delivery tracks spanning design system parity, Quran Mushaf flow, Solaty analytics, Qaida, Abjad, and client integrations (zero backend development).
+- **[Interactive API Documentation (Swagger UI)](/docs)**: Live interactive OpenAPI 3.0 explorer for all endpoints (Qamus, Quran, Prayers, Calendar, Hadith, Duas, AI).
+2. **Frontend-Only Expansion & Client Direct Integrations**: All target parity features inspired by `https://muslim-daily.web.et/` (e.g., Noorani Qaida, Abjad calculator, Solaty analytics, Ahlul-Bait family tree, Multi-Quran comparative reader, and Hisn al-Muslim audio) are engineered strictly on the **frontend** using client-side algorithms, static datasets, browser APIs, and direct Firebase BaaS integrations. No custom backend service development or server routes are created for feature parity.
+3. **Offline-First Resilience**: Multi-tier caching strategy (in-memory state, synchronous `localStorage` fallback, service worker PWA, and stale-while-revalidate network synchronization) guarantees that prayer times, supplications, and holy scripture remain accessible without network connectivity.
+4. **Zero Browser Secret Exposure**: Existing Gemini 2.5 Flash interactions run through the existing backend proxy layer, while all new utility tools run purely on the client side.
+5. **Strict Type Safety & Principle-of-Least-Privilege**: Written in strict TypeScript across client modules, bound to granular Firestore security rules matching authenticated user UIDs.
 
 ---
 
@@ -206,7 +210,27 @@ The production build pipeline reconciles single-page application bundling with s
 
 ---
 
-## 7. Quality Assurance & Performance Metrics
+## 7. Qamus Arabic Dictionary, Grammar (Nahw/Sarf) & I'rab Engine
+
+### 7.1 Morphological & Lexical Pipeline
+The **Qamus Mini-App** provides deep classical Arabic linguistic analysis:
+- **Triliteral Root Extraction**: Canonical root mapping (e.g. ك-ت-ب, ر-ح-م) linked to Quranic frequency indexes.
+- **Tashkeel & Diacritics**: Interactive on-screen Tashkeel keyboard (Fatha, Damma, Kasra, Shaddah, Sukun, Tanween).
+- **Conjugation Matrix (Awzan)**: Classical 10 Verb Forms (الأوزان العشرة) with Past (ماض), Present (مضارع), Verbal Noun (مصدر), and Participle (اسم الفاعل).
+- **I'rab Syntactic Case Parsing**: Color-coded grammatical role breakdowns for verbs, nouns, and particles.
+- **Multilingual Support**: Primary translations in English and Amharic, alongside classical definitions from *Lisan al-Arab* and *Hans Wehr*.
+- **Quranic Concordance**: Direct ayat citations with highlighted occurrence terms and spiritual reflections.
+- **Personal Vocabulary & Flashcards**: Offline-first storage with automatic Firestore sync at `/users/{userId}/vocabulary/{wordId}`.
+
+### 7.2 OpenAPI 3.0 & Swagger UI Architecture
+All RESTful endpoints are formally specified in OpenAPI 3.0.3 (`server/docs/openapi.ts`):
+- **Interactive Swagger UI**: Served directly at `/docs` and `/api/docs` using Swagger UI CDN.
+- **Machine-Readable Spec**: Available in JSON at `/api/docs/swagger.json` and `/api/docs/openapi.json`.
+- **Developer Aliases**: Full backward-compatible route aliases for `/qamus` and `/api/qamus`.
+
+---
+
+## 8. Quality Assurance & Performance Metrics
 
 | Metric | Target | Architecture Provision |
 |---|---|---|

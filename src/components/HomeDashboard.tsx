@@ -23,6 +23,8 @@ import {
   X,
   Flame,
   WifiOff,
+  BookA,
+  Languages,
 } from "lucide-react";
 import { MiniAppId } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -1208,6 +1210,47 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               Quotes
             </span>
           </button>
+        </div>
+      </section>
+
+      {/* 9.5 Qamus Arabic Lexicon & Grammar Launcher */}
+      <section
+        id="qamus-launcher-card"
+        onClick={() => navigate("qamus")}
+        className="relative overflow-hidden bg-gradient-to-br from-[#064E3B] via-[#065F46] to-[#047857] text-white rounded-[20px] p-5 shadow-sm cursor-pointer active:scale-[0.99] transition-all group"
+      >
+        <div className="absolute top-0 right-0 w-36 h-36 bg-emerald-400/10 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none" />
+        
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] bg-emerald-400/25 text-emerald-100 font-semibold px-2 py-0.5 rounded-full border border-emerald-300/30 uppercase tracking-wider">
+                New Mini-App
+              </span>
+              <span className="text-[11px] text-emerald-100/80 font-mono">/api/qamus</span>
+            </div>
+            <h3 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <span>الْقَامُوس</span>
+              <span className="text-sm font-normal text-emerald-200 font-sans">• Qamus Lexicon</span>
+            </h3>
+            <p className="text-xs text-emerald-100/90 leading-snug">
+              Arabic Classical Dictionary, Triliteral Roots, I'rab & Nahw Grammar
+            </p>
+          </div>
+
+          <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-105 transition-transform shrink-0 shadow-inner">
+            <BookA className="w-5 h-5 text-emerald-100" />
+          </div>
+        </div>
+
+        <div className="mt-3.5 pt-3 border-t border-emerald-400/20 flex items-center justify-between text-xs text-emerald-200">
+          <span className="flex items-center gap-1.5 font-arabic">
+            <span>جذور شائعة: ك-ت-ب، ر-ح-م، ع-ل-م</span>
+          </span>
+          <span className="flex items-center gap-1 text-white font-semibold group-hover:translate-x-0.5 transition-transform">
+            <span>Explore</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </span>
         </div>
       </section>
 

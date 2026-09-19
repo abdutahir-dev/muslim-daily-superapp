@@ -12,7 +12,14 @@ export function getGeminiClient(): GoogleGenAI | null {
     return null;
   }
   if (!aiClient) {
-    aiClient = new GoogleGenAI({ apiKey: config.geminiApiKey });
+    aiClient = new GoogleGenAI({
+      apiKey: config.geminiApiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
   }
   return aiClient;
 }

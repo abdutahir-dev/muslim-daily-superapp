@@ -14,3 +14,4 @@ export * from "./ai-assistant";
 export * from "./quotes";
 export * from "./sanctuary";
 export * from "./library";
+export * from "./qamus";

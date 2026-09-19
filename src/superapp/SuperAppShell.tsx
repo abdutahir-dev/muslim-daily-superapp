@@ -14,6 +14,7 @@ import { ZakatApp } from "../miniapps/zakat";
 import { PlacesApp } from "../miniapps/places";
 import { AiAssistantApp } from "../miniapps/ai-assistant";
 import { QuotesApp } from "../miniapps/quotes";
+import { QamusApp } from "../miniapps/qamus";
 import { SettingsModal } from "../components/SettingsModal";
 import { AuthModal } from "../components/AuthModal";
 import { MoreAppsSheet } from "../components/MoreAppsSheet";
@@ -69,6 +70,8 @@ export const SuperAppShell: React.FC = () => {
         return <PlacesApp />;
       case "quotes":
         return <QuotesApp />;
+      case "qamus":
+        return <QamusApp />;
       case "ai":
       case "assistant":
         return <AiAssistantApp />;

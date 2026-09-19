@@ -10,10 +10,14 @@ import { hadithRouter } from "./hadith.routes";
 import { duasRouter } from "./duas.routes";
 import { firebaseSyncRouter } from "./firebase.routes";
 import { deenbotRouter } from "./deenbot.routes";
+import { qamusRouter } from "./qamus.routes";
+import { docsRouter } from "./docs.routes";
 
 export const apiRouter = Router();
 
 apiRouter.use("/health", healthRouter);
+apiRouter.use("/docs", docsRouter);
+apiRouter.use("/qamus", qamusRouter);
 apiRouter.use("/ai", aiRouter);
 apiRouter.use("/places", placesRouter);
 apiRouter.use("/dashboard", dashboardRouter);

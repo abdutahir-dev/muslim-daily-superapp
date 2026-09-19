@@ -1,4 +1,4 @@
-# Muslim Daily SuperApp — Frontend Product & Engineering Roadmap (ROADMAP.md)
+# Muslim Daily SuperApp — Frontend Product & Engineering Roadmap (ROADMAP.MD)
 ## Client-Side Parity Roadmap for https://muslim-daily.web.et/ (Frontend Only)
 
 ---
