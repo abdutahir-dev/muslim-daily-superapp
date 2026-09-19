@@ -148,12 +148,87 @@ Includes astronomical prayer calculations, 10 Canonical Quran Qira'at, Hadith li
         },
       },
     },
+    "/quran/random": {
+      get: {
+        tags: ["Quran"],
+        summary: "Generate random Ayahs with translations, Tafsir, and audio",
+        description:
+          "Generates a customizable random set of Ayahs (default: 7) featuring full Arabic text, English translation (Sahih International), Amharic translation (Sadiq & Sani), Arabic Tafsir (Al-Tafsir Al-Muyassar), audio URLs, and Surah metadata. Supports filtering by Surah number or Revelation type (Meccan/Medinan).",
+        parameters: [
+          {
+            name: "count",
+            in: "query",
+            schema: { type: "integer", default: 7, minimum: 1, maximum: 50 },
+            description: "Number of randomized ayahs to return (default is 7)",
+          },
+          {
+            name: "surah",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 114 },
+            description: "Filter random selection to a specific Surah",
+          },
+          {
+            name: "revelation",
+            in: "query",
+            schema: { type: "string", enum: ["all", "Meccan", "Medinan"], default: "all" },
+            description: "Filter by Meccan or Medinan revelation period",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Randomized list of Ayahs with quad-lingual fields and metadata",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: { type: "string", example: "success" },
+                    count: { type: "integer", example: 7 },
+                    data: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/AyahDetail" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     "/quran/surahs": {
       get: {
         tags: ["Quran"],
         summary: "List all 114 Surahs of the Holy Quran",
         responses: {
           "200": { description: "Array of Surah metadata" },
+        },
+      },
+    },
+    "/quran/surahs/{number}/historical": {
+      get: {
+        tags: ["Quran"],
+        summary: "Get comprehensive historical details for a Surah",
+        description:
+          "Returns historical context, place of revelation (Makkah/Madinah in English & Amharic), chronological revelation order, time period, causes of revelation (Asbab al-Nuzul in English, Amharic & Arabic), core theological themes, and documented virtues.",
+        parameters: [
+          { name: "number", in: "path", required: true, schema: { type: "integer", minimum: 1, maximum: 114 } },
+        ],
+        responses: {
+          "200": {
+            description: "Surah historical and contextual details",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: { type: "string", example: "success" },
+                    data: { $ref: "#/components/schemas/SurahHistoricalDetail" },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -330,6 +405,60 @@ Includes astronomical prayer calculations, 10 Canonical Quran Qira'at, Hadith li
             type: "array",
             items: { $ref: "#/components/schemas/QamusRootInfo" },
           },
+        },
+      },
+      AyahDetail: {
+        type: "object",
+        properties: {
+          surahNumber: { type: "integer", example: 1 },
+          ayahNumber: { type: "integer", example: 2 },
+          surahNameEnglish: { type: "string", example: "Al-Fatihah" },
+          surahNameArabic: { type: "string", example: "الفاتحة" },
+          revelationType: { type: "string", enum: ["Meccan", "Medinan"], example: "Meccan" },
+          arabic: { type: "string", example: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ" },
+          transliteration: { type: "string", example: "Al-ḥamdu lillāhi Rabbil-'ālamīn" },
+          translationEnglish: { type: "string", example: "[All] praise is [due] to Allah, Lord of the worlds -" },
+          translationAmharic: { type: "string", example: "ምስጋና ለአላህ ይገባው የዓለማት ጌታ ለኾነው፤" },
+          tafsirArabic: { type: "string", example: "الثناء الكامل والشكر التام لله تعالى وحده، المتفرد بالخلق والتدبير والإنعام." },
+          audioUrl: { type: "string", example: "https://everyayah.com/data/Alafasy_128kbps/001002.mp3" },
+          juzNumber: { type: "integer", example: 1 },
+        },
+      },
+      SurahHistoricalDetail: {
+        type: "object",
+        properties: {
+          number: { type: "integer", example: 1 },
+          nameArabic: { type: "string", example: "الفاتحة" },
+          nameEnglish: { type: "string", example: "Al-Fatihah" },
+          revelationPlace: { type: "string", example: "Makkah Al-Mukarramah" },
+          revelationPlaceAmharic: { type: "string", example: "መካ አል-ሙከረማ" },
+          revelationOrder: { type: "integer", example: 5 },
+          revelationTimePeriod: { type: "string", example: "Meccan Period (610–622 CE)" },
+          revelationTimePeriodAmharic: { type: "string", example: "የመካ ዘመን (610-622 እ.ኤ.አ)" },
+          causeOfRevelation: { type: "string", example: "Revealed at the onset of prophetic mission as the comprehensive opening of the Quran." },
+          causeOfRevelationAmharic: { type: "string", example: "የነቢይነት ተልዕኮ እንደተጀመረ የቁርኣን መክፈቻና ሁሉን አቀፍ ምዕራፍ ሆና ወረደች።" },
+          causeOfRevelationArabic: { type: "string", example: "نزلت في أوائل البعثة النبوية بمكة المكرمة كفاتحة شاملة للقرآن العظيم." },
+          mainThemes: {
+            type: "array",
+            items: { type: "string" },
+            example: ["Tawheed and Praise", "Supplication and Guidance", "Righteous Path vs. Astray Path"],
+          },
+          mainThemesAmharic: {
+            type: "array",
+            items: { type: "string" },
+            example: ["የአላህ አንድነትና ምስጋና", "ዱዓዕና ቅን መመሪያ", "የቅኖች መንገድና የጠማሞች መንገድ"],
+          },
+          virtues: {
+            type: "array",
+            items: { type: "string" },
+            example: ["Greatest Surah in the Quran (Sab'ul-Mathani)", "Spiritual Cure (Al-Ruqyah)"],
+          },
+          virtuesAmharic: {
+            type: "array",
+            items: { type: "string" },
+            example: ["በቁርኣን ውስጥ ታላቋ ምዕራፍ (ሰብዑል መሳኒ)", "ለመንፈሳዊ ፈውስ (ሩቅያህ) የምታገለግል"],
+          },
+          rukusCount: { type: "integer", example: 1 },
         },
       },
     },

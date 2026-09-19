@@ -466,7 +466,7 @@ Navigate to **Repository Settings > Secrets and variables > Actions** and add:
 | # | Mini-App | Directory | Core Capabilities |
 |---|---|---|---|
 | 1 | **Prayer Times** | `src/miniapps/prayer-times` | Keplerian solar formulas, 6 calculation conventions, Asr juristic schools, Adhan audio preview |
-| 2 | **Holy Quran** | `src/miniapps/quran` | 10 Canonical Qira'at, Amharic/English translations, Qira'at difference explorer, reciter audio streaming |
+| 2 | **Holy Quran** | `src/miniapps/quran` | 10 Canonical Qira'at, Amharic (ሙሐመድ ሳኒ) & English (Sahih) translations, Arabic Tafsir (الميسر), Random Ayahs Generator (7 Ayahs default), Surah Historical Context (أسباب النزول), and high-fidelity audio recitations |
 | 3 | **Qibla Compass** | `src/miniapps/qibla` | Great-circle Kaaba calculation, device orientation magnetometer, haptic alignment feedback |
 | 4 | **Smart Tasbih** | `src/miniapps/tasbih` | Tactile bead counter, haptic clicks, 33/99/100 presets, persistent lifetime counters |
 | 5 | **Daily Adhkar** | `src/miniapps/adhkar` | Authentic Hisn al-Muslim supplications (Morning, Evening, After Prayer, Sleep) with counter |
@@ -490,6 +490,10 @@ Muslim Daily features an interactive **Swagger UI** available in development and
 
 ```
 GET  /api/health                 # Backend health & uptime diagnostics
+GET  /api/quran/random           # Random Ayahs generator with quad-lingual translations & Tafsir
+GET  /api/quran/surahs           # 114 Surahs metadata list
+GET  /api/quran/surahs/:num/historical # Surah place of revelation, Asbab al-Nuzul & virtues
+GET  /api/quran/surahs/:number   # Surah verses and translations
 POST /api/ai/ask                 # Ask Ilm Gemini 2.5 Flash query endpoint
 GET  /api/places                 # Halal food & Masajid geo-search directory
 GET  /api/qamus/search           # Arabic dictionary & root morphology lookup

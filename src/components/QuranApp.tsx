@@ -34,6 +34,8 @@ import { QiraatStyleSelector } from "./quran/QiraatStyleSelector";
 import { QiraatDifferenceModal } from "./quran/QiraatDifferenceModal";
 import { QiraatHubView } from "./quran/QiraatHubView";
 import { QuranAudioPlayer } from "./quran/QuranAudioPlayer";
+import { RandomAyahsGeneratorModal } from "./quran/RandomAyahsGeneratorModal";
+import { SurahHistoricalDetailsModal } from "./quran/SurahHistoricalDetailsModal";
 
 export const QuranApp: React.FC = () => {
   const { bookmarks, addBookmark, removeBookmark, preferences, updatePreferences } = useAuth();
@@ -43,6 +45,11 @@ export const QuranApp: React.FC = () => {
   const [selectedSurah, setSelectedSurah] = useState<SurahMeta | null>(null);
   const [verses, setVerses] = useState<AyahItem[]>([]);
   const [loadingVerses, setLoadingVerses] = useState(false);
+
+  // New Modals State
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [historyModalSurahNumber, setHistoryModalSurahNumber] = useState<number | null>(null);
+  const [showTafsirMap, setShowTafsirMap] = useState<Record<number, boolean>>({});
 
   // Active reading style from user preferences or default to Hafs
   const currentStyleId: QuranReadingStyle = preferences.quranReadingStyle || "hafs";
@@ -290,14 +297,25 @@ export const QuranApp: React.FC = () => {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setActiveView("qiraat")}
-            className="text-[11px] text-[#007A78] font-semibold hover:underline flex items-center gap-0.5 shrink-0 cursor-pointer"
-          >
-            <span>Learn Qira'at</span>
-            <ChevronRight className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setHistoryModalSurahNumber(selectedSurah.number)}
+              className="text-[11px] bg-[#007A78]/15 text-[#007A78] font-semibold px-2.5 py-1 rounded-full hover:bg-[#007A78]/25 flex items-center gap-1 shrink-0 cursor-pointer"
+              title="View place of revelation, causes of revelation (Asbab al-Nuzul), and themes"
+            >
+              <Info className="w-3.5 h-3.5" />
+              <span>Surah Context</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView("qiraat")}
+              className="text-[11px] text-[#007A78] font-semibold hover:underline flex items-center gap-0.5 shrink-0 cursor-pointer"
+            >
+              <span>Qira'at</span>
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         {/* Translation Banner Attribution */}
@@ -485,6 +503,38 @@ export const QuranApp: React.FC = () => {
                         <p>{ayah.translation}</p>
                       </div>
                     )}
+
+                    {/* Arabic Tafsir Accordion */}
+                    {ayah.tafsirArabic && (
+                      <div className="pt-1.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowTafsirMap((prev) => ({
+                              ...prev,
+                              [ayah.numberInSurah]: !prev[ayah.numberInSurah],
+                            }))
+                          }
+                          className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-xl bg-[#007A78]/5 hover:bg-[#007A78]/10 text-[11px] text-[#007A78] font-medium transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <BookOpen className="w-3 h-3" />
+                            <span>التفسير الميسر (Arabic Tafsir)</span>
+                          </div>
+                          <span className="text-[10px]">
+                            {showTafsirMap[ayah.numberInSurah] ? "إخفاء" : "عرض"}
+                          </span>
+                        </button>
+                        {showTafsirMap[ayah.numberInSurah] && (
+                          <div
+                            dir="rtl"
+                            className="mt-1.5 p-3 rounded-xl bg-[#007A78]/5 border border-[#007A78]/15 font-arabic text-xs leading-relaxed text-right text-[#1C1C1E]"
+                          >
+                            {ayah.tafsirArabic}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -503,6 +553,19 @@ export const QuranApp: React.FC = () => {
             currentArabicText={inspectingDifference.arabicText}
           />
         )}
+
+        {/* Surah Historical Details Modal in Reader View */}
+        {historyModalSurahNumber !== null && (
+          <SurahHistoricalDetailsModal
+            isOpen={true}
+            onClose={() => setHistoryModalSurahNumber(null)}
+            surahNumber={historyModalSurahNumber}
+            onSelectSurah={(num) => {
+              const target = SURAH_LIST.find((s) => s.number === num);
+              if (target) setSelectedSurah(target);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -518,7 +581,7 @@ export const QuranApp: React.FC = () => {
               Holy Quran & Qira'at
             </h2>
             <p className="text-[11px] text-[#8E8E93]">
-              10 Authentic Canonical Readings (Hafs, Ad-Duri, Warsh, Qalun...)
+              10 Authentic Readings, Amharic & English Translations, Tafsir & History
             </p>
           </div>
 
@@ -557,6 +620,33 @@ export const QuranApp: React.FC = () => {
               )}
             </button>
           </div>
+        </div>
+
+        {/* Random Ayahs Launcher Banner */}
+        <div className="bg-gradient-to-r from-emerald-600 via-[#007A78] to-teal-700 rounded-2xl p-3.5 text-white flex items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-xs">Random Ayahs Generator</span>
+                <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">
+                  7 Ayahs
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-100/90 font-ethiopic">
+                ዕለታዊ 7 አንቀጾች ከአማርኛ ትርጉም፣ ተፍሲርና ድምፅ ጋር ያግኙ
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsRandomModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-white text-[#007A78] font-bold text-xs hover:bg-emerald-50 active:scale-95 transition-all shadow-xs shrink-0 cursor-pointer"
+          >
+            Generate
+          </button>
         </div>
 
         {/* Active Reading Style Chip in Surahs View */}
@@ -666,13 +756,15 @@ export const QuranApp: React.FC = () => {
       {activeView === "surahs" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {filteredSurahs.map((surah) => (
-            <button
+            <div
               key={surah.number}
-              type="button"
-              onClick={() => setSelectedSurah(surah)}
-              className="ios-card p-3 flex items-center justify-between active:scale-[0.98] transition-all text-left group cursor-pointer"
+              className="ios-card p-3 flex items-center justify-between active:scale-[0.98] transition-all text-left group hover:border-[#007A78]/40"
             >
-              <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setSelectedSurah(surah)}
+                className="flex items-center gap-2.5 flex-1 cursor-pointer"
+              >
                 <div className="w-8 h-8 rounded-[10px] bg-[#767680]/10 text-[#1C1C1E] font-bold text-xs flex items-center justify-center font-mono group-hover:bg-[#007A78]/10 group-hover:text-[#007A78] transition-colors">
                   {surah.number}
                 </div>
@@ -682,7 +774,7 @@ export const QuranApp: React.FC = () => {
                       {surah.nameEnglish}
                     </span>
                     {surah.translationAmharic && (
-                      <span className="text-[10px] text-[#007A78] font-medium bg-[#007A78]/10 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] text-[#007A78] font-medium bg-[#007A78]/10 px-1.5 py-0.5 rounded-md font-ethiopic">
                         {surah.translationAmharic}
                       </span>
                     )}
@@ -694,16 +786,65 @@ export const QuranApp: React.FC = () => {
                     {surah.translationEnglish} • {surah.totalVerses}v
                   </span>
                 </div>
-              </div>
+              </button>
 
-              <div className="text-right">
-                <span className="font-arabic text-base text-[#1C1C1E] group-hover:text-[#007A78] transition-colors">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHistoryModalSurahNumber(surah.number);
+                  }}
+                  className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#007A78] hover:bg-[#007A78]/10 transition-colors cursor-pointer"
+                  title="View Causes of Revelation (أسباب النزول) and Historical Details"
+                >
+                  <Info className="w-4 h-4" />
+                </button>
+                <span
+                  onClick={() => setSelectedSurah(surah)}
+                  className="font-arabic text-base text-[#1C1C1E] group-hover:text-[#007A78] transition-colors cursor-pointer"
+                >
                   {surah.nameArabic}
                 </span>
               </div>
-            </button>
+            </div>
           ))}
         </div>
+      )}
+
+      {/* Random Ayahs Generator Modal */}
+      <RandomAyahsGeneratorModal
+        isOpen={isRandomModalOpen}
+        onClose={() => setIsRandomModalOpen(false)}
+        onSelectSurahAndAyah={(surahNum, ayahNum) => {
+          const surah = SURAH_LIST.find((s) => s.number === surahNum);
+          if (surah) {
+            setSelectedSurah(surah);
+            setActiveView("surahs");
+            setTimeout(() => {
+              const el = document.getElementById(`ayah-${ayahNum}`);
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 350);
+          }
+        }}
+        onBookmarkAyah={handleToggleBookmark}
+        isBookmarked={isAyahBookmarked}
+      />
+
+      {/* Surah Historical Details Modal in Catalog View */}
+      {historyModalSurahNumber !== null && (
+        <SurahHistoricalDetailsModal
+          isOpen={true}
+          onClose={() => setHistoryModalSurahNumber(null)}
+          surahNumber={historyModalSurahNumber}
+          onSelectSurah={(num) => {
+            const target = SURAH_LIST.find((s) => s.number === num);
+            if (target) {
+              setSelectedSurah(target);
+              setActiveView("surahs");
+            }
+          }}
+        />
       )}
     </div>
   );

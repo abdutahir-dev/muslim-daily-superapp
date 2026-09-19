@@ -96,4 +96,41 @@ export class QuranController {
       audioUrl: audioInfo.audioUrl,
     });
   }
+
+  public static getRandomAyahs(req: Request, res: Response): void {
+    const count = parseInt((req.query.count as string) || "7", 10);
+    const surahFilter = req.query.surah ? parseInt(req.query.surah as string, 10) : undefined;
+    const revelationFilter = (req.query.revelation as "all" | "Meccan" | "Medinan") || "all";
+
+    const ayahs = QuranService.getRandomAyahs(
+      isNaN(count) || count <= 0 ? 7 : count,
+      surahFilter,
+      revelationFilter
+    );
+
+    res.json({
+      status: "success",
+      count: ayahs.length,
+      data: ayahs,
+    });
+  }
+
+  public static getSurahHistoricalDetails(req: Request, res: Response): void {
+    const surahNumber = parseInt(req.params.number, 10);
+    if (isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+      res.status(400).json({ error: "Invalid surah number. Must be between 1 and 114." });
+      return;
+    }
+
+    const details = QuranService.getSurahHistoricalDetails(surahNumber);
+    if (!details) {
+      res.status(404).json({ error: "Historical details not found for this surah." });
+      return;
+    }
+
+    res.json({
+      status: "success",
+      data: details,
+    });
+  }
 }

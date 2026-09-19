@@ -1,7 +1,8 @@
 import { AyahItem, SurahMeta, QuranReadingStyle } from "../types";
 import { getVariantTextForAyah, getDifferencesForAyah } from "./qiraatData";
+import { getSurahHistoricalDetails } from "./surahDetailsData";
 
-export const SURAH_LIST: SurahMeta[] = [
+const BASE_SURAH_LIST: SurahMeta[] = [
   { number: 1, nameArabic: "الفاتحة", nameEnglish: "Al-Fatihah", translationEnglish: "The Opening", translationAmharic: "መክፈቻው", revelationType: "Meccan", totalVerses: 7, juzNumber: 1, audioReciterAlafasy: "001.mp3" },
   { number: 2, nameArabic: "البقرة", nameEnglish: "Al-Baqarah", translationEnglish: "The Cow", translationAmharic: "ላሟ", revelationType: "Medinan", totalVerses: 286, juzNumber: 1, audioReciterAlafasy: "002.mp3" },
   { number: 3, nameArabic: "آل عمران", nameEnglish: "Ali 'Imran", translationEnglish: "Family of Imran", translationAmharic: "የዒምራን ቤተሰቦች", revelationType: "Medinan", totalVerses: 200, juzNumber: 3, audioReciterAlafasy: "003.mp3" },
@@ -117,6 +118,17 @@ export const SURAH_LIST: SurahMeta[] = [
   { number: 113, nameArabic: "الفلق", nameEnglish: "Al-Falaq", translationEnglish: "The Daybreak", translationAmharic: "የማለዳው ብርሃን", revelationType: "Meccan", totalVerses: 5, juzNumber: 30, audioReciterAlafasy: "113.mp3" },
   { number: 114, nameArabic: "الناس", nameEnglish: "An-Nas", translationEnglish: "Mankind", translationAmharic: "የሰው ልጆች", revelationType: "Meccan", totalVerses: 6, juzNumber: 30, audioReciterAlafasy: "114.mp3" },
 ];
+
+export const SURAH_LIST: SurahMeta[] = BASE_SURAH_LIST.map((s) => ({
+  ...s,
+  historicalDetails: getSurahHistoricalDetails(
+    s.number,
+    s.nameEnglish,
+    s.nameArabic,
+    s.revelationType,
+    s.totalVerses
+  ),
+}));
 
 export const CURATED_SURAHS: Record<number, AyahItem[]> = {
   // Surah 1: Al-Fatihah
@@ -540,7 +552,7 @@ export async function fetchSurahVerses(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
 
-    const [arabicRes, englishRes, amharicRes] = await Promise.allSettled([
+    const [arabicRes, englishRes, amharicRes, tafsirRes] = await Promise.allSettled([
       fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/quran-uthmani`, {
         signal: controller.signal,
       }),
@@ -550,6 +562,9 @@ export async function fetchSurahVerses(
       fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/am.sadiq`, {
         signal: controller.signal,
       }),
+      fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.muyassar`, {
+        signal: controller.signal,
+      }),
     ]);
 
     clearTimeout(timeout);
@@ -557,6 +572,7 @@ export async function fetchSurahVerses(
     let arabicAyahs: any[] = [];
     let englishAyahs: any[] = [];
     let amharicAyahs: any[] = [];
+    let tafsirAyahs: any[] = [];
 
     if (arabicRes.status === "fulfilled" && arabicRes.value.ok) {
       const arabicData = await arabicRes.value.json();
@@ -571,6 +587,11 @@ export async function fetchSurahVerses(
     if (amharicRes.status === "fulfilled" && amharicRes.value.ok) {
       const amharicData = await amharicRes.value.json();
       amharicAyahs = amharicData.data?.ayahs || [];
+    }
+
+    if (tafsirRes.status === "fulfilled" && tafsirRes.value.ok) {
+      const tafsirData = await tafsirRes.value.json();
+      tafsirAyahs = tafsirData.data?.ayahs || [];
     }
 
     if (arabicAyahs.length > 0) {
@@ -592,6 +613,7 @@ export async function fetchSurahVerses(
           transliteration: `Ayah ${item.numberInSurah}`,
           translation: englishAyahs[idx]?.text || "",
           translationAmharic: amharicAyahs[idx]?.text || "",
+          tafsirArabic: tafsirAyahs[idx]?.text || "",
           audioUrl: `https://everyayah.com/data/Alafasy_128kbps/${paddedSurah}${paddedAyah}.mp3`,
           juz: item.juz || 1,
           readingStyle,

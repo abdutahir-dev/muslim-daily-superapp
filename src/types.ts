@@ -135,6 +135,25 @@ export interface HijriDateInfo {
   formattedArabic: string;
 }
 
+export interface SurahHistoricalDetail {
+  number: number;
+  nameArabic: string;
+  nameEnglish: string;
+  revelationPlace: "Makkah Al-Mukarramah" | "Al-Madinah Al-Munawwarah" | string;
+  revelationPlaceAmharic?: string;
+  revelationOrder: number; // Chronological order of revelation (1 to 114)
+  revelationTimePeriod: string; // e.g. "Early Meccan (circa 610-615 CE)", "Post-Hijrah (2 AH)"
+  revelationTimePeriodAmharic?: string;
+  causeOfRevelation: string; // Asbab al-Nuzul in English
+  causeOfRevelationAmharic: string; // Asbab al-Nuzul in Amharic
+  causeOfRevelationArabic?: string; // Asbab al-Nuzul in Arabic
+  mainThemes: string[]; // Core theological & legal themes
+  mainThemesAmharic?: string[];
+  virtues: string[]; // Authentic hadiths regarding virtues of the surah
+  virtuesAmharic?: string[];
+  rukusCount: number;
+}
+
 export interface SurahMeta {
   number: number;
   nameArabic: string;
@@ -145,6 +164,7 @@ export interface SurahMeta {
   totalVerses: number;
   juzNumber: number;
   audioReciterAlafasy: string;
+  historicalDetails?: SurahHistoricalDetail;
 }
 
 export interface AyahItem {
@@ -153,10 +173,22 @@ export interface AyahItem {
   transliteration: string;
   translation: string;
   translationAmharic?: string;
+  tafsirArabic?: string; // Arabic Tafsir (التفسير الميسر / تفسير الجلالين)
   audioUrl?: string;
   juz: number;
   readingStyle?: QuranReadingStyle;
   qiraatDifferences?: QiraatDifferenceItem[];
+  surahNumber?: number;
+  surahNameEnglish?: string;
+  surahNameArabic?: string;
+  revelationType?: "Meccan" | "Medinan";
+}
+
+export interface RandomAyahsOptions {
+  count?: number; // default 7
+  surahFilter?: number; // 0 = all
+  revelationFilter?: "all" | "Meccan" | "Medinan";
+  includeTafsir?: boolean;
 }
 
 export interface QuranBookmark {

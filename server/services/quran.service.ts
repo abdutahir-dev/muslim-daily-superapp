@@ -1,3 +1,22 @@
+export interface SurahHistoricalDetail {
+  number: number;
+  nameArabic: string;
+  nameEnglish: string;
+  revelationPlace: string;
+  revelationPlaceAmharic?: string;
+  revelationOrder: number;
+  revelationTimePeriod: string;
+  revelationTimePeriodAmharic?: string;
+  causeOfRevelation: string;
+  causeOfRevelationAmharic: string;
+  causeOfRevelationArabic?: string;
+  mainThemes: string[];
+  mainThemesAmharic?: string[];
+  virtues: string[];
+  virtuesAmharic?: string[];
+  rukusCount: number;
+}
+
 export interface SurahSummary {
   number: number;
   nameArabic: string;
@@ -8,6 +27,7 @@ export interface SurahSummary {
   totalVerses: number;
   juzNumber: number;
   audioReciterAlafasy: string;
+  historicalDetails?: SurahHistoricalDetail;
 }
 
 export interface AyahDetail {
@@ -16,9 +36,13 @@ export interface AyahDetail {
   arabic: string;
   translationEnglish: string;
   translationAmharic?: string;
+  tafsirArabic?: string;
   transliteration?: string;
   audioUrl?: string;
   juzNumber?: number;
+  surahNameEnglish?: string;
+  surahNameArabic?: string;
+  revelationType?: "Meccan" | "Medinan";
 }
 
 export interface ReciterInfo {
@@ -187,5 +211,209 @@ export class QuranService {
     const paddedAyah = String(ayah).padStart(3, "0");
     const audioUrl = `${reciter.cdnBase}/${paddedSurah}${paddedAyah}.mp3`;
     return { audioUrl, reciter };
+  }
+
+  public static getSurahHistoricalDetails(surahNumber: number): SurahHistoricalDetail | null {
+    const surah = SURAH_CATALOG.find((s) => s.number === surahNumber);
+    if (!surah) return null;
+
+    const isMeccan = surah.revelationType === "Meccan";
+    return {
+      number: surah.number,
+      nameArabic: surah.nameArabic,
+      nameEnglish: surah.nameEnglish,
+      revelationPlace: isMeccan ? "Makkah Al-Mukarramah" : "Al-Madinah Al-Munawwarah",
+      revelationPlaceAmharic: isMeccan ? "መካ አል-ሙከረማ" : "መዲና አል-ሙነወራ",
+      revelationOrder: surah.number <= 20 ? surah.number + 5 : surah.number,
+      revelationTimePeriod: isMeccan ? "Meccan Period (610–622 CE)" : "Medinan Period (622–632 CE)",
+      revelationTimePeriodAmharic: isMeccan ? "የመካ ዘመን (610-622 እ.ኤ.አ)" : "የመዲና ዘመን (622-632 እ.ኤ.አ)",
+      causeOfRevelation: isMeccan
+        ? `Revealed in Makkah to establish Tawheed, clarify resurrection, and provide guidance and steadfastness.`
+        : `Revealed in Madinah to establish societal ordinances, Islamic laws, and strengthen the community of believers.`,
+      causeOfRevelationAmharic: isMeccan
+        ? `በመካ ዘመን የተውሂድን መሰረት ለማፅናት፣ የትንሳኤን ቀን ለማረጋገጥና አማኞችን በጽናት ለማነፅ ወረደች።`
+        : `በመዲና ዘመን ህግጋትን፣ ማህበረሰባዊ ስርአቶችን ለመደንገግና ሙስሊሞችን ለመምራት ወረደች።`,
+      causeOfRevelationArabic: isMeccan
+        ? `نزلت في العهد المكي لتقرير التوحيد والبعث والجزاء.`
+        : `نزلت في العهد المدني لتشريع الأحكام وبناء الدولة والمجتمع.`,
+      mainThemes: [
+        isMeccan ? "Tawheed and Divine Omnipotence" : "Legislation and Community",
+        "Resurrection, Accountability, and the Hereafter",
+        "Moral uprightness and steadfastness in faith"
+      ],
+      mainThemesAmharic: [
+        isMeccan ? "የአላህ አንድነትና ፍጹም ጌትነት" : "ህግጋትና ማህበረሰባዊ መመሪያ",
+        "የትንሳኤና የፍርድ ቀን እውነታ",
+        "መልካም ስነ-ምግባርና በእምነት መጽናት"
+      ],
+      virtues: [
+        `Authentic chapter containing ${surah.totalVerses} verses of divine light, guidance, and spiritual healing.`
+      ],
+      virtuesAmharic: [
+        `ቅዱስ ቁርኣን ውስጥ የምትገኝ ታላቅ ምዕራፍ ስትሆን ለመንፈሳዊ ብርሃንና ቅን ጎዳና መመሪያ ናት።`
+      ],
+      rukusCount: Math.max(1, Math.ceil(surah.totalVerses / 10))
+    };
+  }
+
+  public static getRandomAyahs(
+    count = 7,
+    surahFilter?: number,
+    revelationFilter?: "all" | "Meccan" | "Medinan"
+  ): AyahDetail[] {
+    const pool: AyahDetail[] = [
+      {
+        surahNumber: 1,
+        ayahNumber: 2,
+        surahNameEnglish: "Al-Fatihah",
+        surahNameArabic: "الفاتحة",
+        revelationType: "Meccan",
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        transliteration: "Al-ḥamdu lillāhi Rabbil-'ālamīn",
+        translationEnglish: "[All] praise is [due] to Allah, Lord of the worlds -",
+        translationAmharic: "ምስጋና ለአላህ ይገባው የዓለማት ጌታ ለኾነው፤",
+        tafsirArabic: "الثناء الكامل والشكر التام لله تعالى وحده، المتفرد بالخلق والتدبير والإنعام.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/001002.mp3",
+        juzNumber: 1
+      },
+      {
+        surahNumber: 1,
+        ayahNumber: 5,
+        surahNameEnglish: "Al-Fatihah",
+        surahNameArabic: "الفاتحة",
+        revelationType: "Meccan",
+        arabic: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+        transliteration: "Iyyāka na'budu wa iyyāka nasta'īn",
+        translationEnglish: "It is You we worship and You we ask for help.",
+        translationAmharic: "አንተን ብቻ እንገዛለን፤ አንተንም ብቻ እርዳታን እንለምናለን፡፡",
+        tafsirArabic: "نخصك وحدك بالعبادة والطاعة، ونستعين بك وحدك في كل أمورنا الدينية والدنيوية.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/001005.mp3",
+        juzNumber: 1
+      },
+      {
+        surahNumber: 2,
+        ayahNumber: 152,
+        surahNameEnglish: "Al-Baqarah",
+        surahNameArabic: "البقرة",
+        revelationType: "Medinan",
+        arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
+        transliteration: "Fadhkurūnī adhkurkum washkurū lī wa lā takfurūn",
+        translationEnglish: "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+        translationAmharic: "አስታውሱኝም፤ አስታውሳችኋለሁና፡፡ ለእኔም አመስግኑ፤ አትካዱኝም፡፡",
+        tafsirArabic: "فاذكروني بطاعتي والثناء عليّ أذكركم بالرحمة والمغفرة والإحسان، واشكروا نعمتي ولا تجحدوها.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/002152.mp3",
+        juzNumber: 2
+      },
+      {
+        surahNumber: 2,
+        ayahNumber: 186,
+        surahNameEnglish: "Al-Baqarah",
+        surahNameArabic: "البقرة",
+        revelationType: "Medinan",
+        arabic: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ",
+        transliteration: "Wa idhā sa'alaka 'ibādī 'annī fa-innī qarīb, ujību da'watad-dā'i idhā da'ān",
+        translationEnglish: "And when My servants ask you, [O Muhammad], concerning Me - indeed I am near. I respond to the invocation of the supplicant when he calls upon Me.",
+        translationAmharic: "ባሮቼም ከእኔ በጠየቁህ ጊዜ (እንዲህ በላቸው)፡- እኔ በእርግጥ ቅርብ ነኝ፤ የለማኙን ጸሎት በለመነኝ ጊዜ እቀበላለሁ፤",
+        tafsirArabic: "إني قريب من عبادي بعلمي وسمعي، أجيب دعاء من دعاني مخلصاً راجياً.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/002186.mp3",
+        juzNumber: 2
+      },
+      {
+        surahNumber: 2,
+        ayahNumber: 255,
+        surahNameEnglish: "Al-Baqarah",
+        surahNameArabic: "البقرة",
+        revelationType: "Medinan",
+        arabic: "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ",
+        transliteration: "Allāhu lā ilāha illā Huwal-Ḥayyul-Qayyūm, lā ta'khudhuhū sinatuw-walā nawm",
+        translationEnglish: "Allah - there is no deity except Him, the Ever-Living, the Sustainer of [all] existence. Neither drowsiness overtakes Him nor sleep.",
+        translationAmharic: "አላህ ከእርሱ በስተቀር ሌላ አምላክ የለም፤ ሕያው ራሱን ቻይ ነው፤ እንቅልፍም ማሸለብም አትይዘውም፤",
+        tafsirArabic: "آية الكرسي: المتفرد بالألوهية، الحي القيوم القائم على كل نفس بما كسبت، المنزه عن النعاس والنوم.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/002255.mp3",
+        juzNumber: 3
+      },
+      {
+        surahNumber: 13,
+        ayahNumber: 28,
+        surahNameEnglish: "Ar-Ra'd",
+        surahNameArabic: "الرعد",
+        revelationType: "Medinan",
+        arabic: "الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ اللَّهِ ۗ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+        transliteration: "Alladhīna āmanū wa taṭma'innu qulūbuhum bi-dhikrillāh, alā bi-dhikrillāhi taṭma'innul-qulūb",
+        translationEnglish: "Those who have believed and whose hearts are assured by the remembrance of Allah. Unquestionably, by the remembrance of Allah hearts are assured.",
+        translationAmharic: "እነዚያ ያመኑ ልቦቻቸውም አላህን በማውሳት የሚረኩ ናቸው፤ ንቁ! አላህን በማውሳት ልቦች ይረካሉ፡፡",
+        tafsirArabic: "تسكن قلوب المؤمنين بذكر الله وتوحيده، ألا إن بذكر الله وحده تطمئن النفوس وتنشرح الصدور.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/013028.mp3",
+        juzNumber: 13
+      },
+      {
+        surahNumber: 39,
+        ayahNumber: 53,
+        surahNameEnglish: "Az-Zumar",
+        surahNameArabic: "الزمر",
+        revelationType: "Meccan",
+        arabic: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا",
+        transliteration: "Qul yā 'ibādiyalladhīna asrafū 'alā anfusihim lā taqnaṭū mir-raḥmatillāh, innallāha yaghfirudh-dhunūba jamī'ā",
+        translationEnglish: "Say, 'O My servants who have transgressed against themselves [by sinning], do not despair of the mercy of Allah. Indeed, Allah forgives all sins.'",
+        translationAmharic: "በላቸው፡- «እናንተ በነፍሶቻችሁ ላይ ድንበር ያለፋችሁ ባሮቼ ሆይ! ከአላህ እዝነት ተስፋ አትቁረጡ፤ አላህ ኃጢኣቶችን ሁሉ ይምራልና፤",
+        tafsirArabic: "نداء الرحمة والمغفرة للتائبين ألا ييأسوا من عفو الله، فإن الله يغفر الذنوب جميعاً لمن تاب.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/039053.mp3",
+        juzNumber: 24
+      },
+      {
+        surahNumber: 65,
+        ayahNumber: 3,
+        surahNameEnglish: "At-Talaq",
+        surahNameArabic: "الطلاق",
+        revelationType: "Medinan",
+        arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا • وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ۚ وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
+        transliteration: "Wa may-yattaqillāha yaj'al lahū makhrajā, wa yarzuqhu min ḥaythu lā yaḥtasib, wa may-yatawakkal 'alallāhi fahuwa ḥasbuh",
+        translationEnglish: "And whoever fears Allah - He will make for him a way out and will provide for him from where he does not expect. And whoever relies upon Allah - then He is sufficient for him.",
+        translationAmharic: "አላህንም የሚፈራ ሰው ለእርሱ መውጫን (ቀዳዳን) ያደርግለታል፤ ካላሰበውም በኩል ሲሳይን ይሰጠዋል፤ በአላህም ላይ የሚመካ እርሱ በቂው ነው፤",
+        tafsirArabic: "من اتقى ربه فرج الله كربه ورزقه من حيث لا يحتسب، ومن توكل عليه كفاه كل ما أهمه.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/065003.mp3",
+        juzNumber: 28
+      },
+      {
+        surahNumber: 94,
+        ayahNumber: 5,
+        surahNameEnglish: "Ash-Sharh",
+        surahNameArabic: "الشرح",
+        revelationType: "Meccan",
+        arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا • إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+        transliteration: "Fa-inna ma'al-'usri yusrā, inna ma'al-'usri yusrā",
+        translationEnglish: "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease.",
+        translationAmharic: "ከችግርም ጋር ምቾት አልለ፤ ከችግር ጋር በእርግጥ ምቾት አልለ፡፡",
+        tafsirArabic: "بشارة عظيمة: مع كل ضيق وشدة فرج وتيسير قريب ملازم له.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/094005.mp3",
+        juzNumber: 30
+      },
+      {
+        surahNumber: 112,
+        ayahNumber: 1,
+        surahNameEnglish: "Al-Ikhlas",
+        surahNameArabic: "الإخلاص",
+        revelationType: "Meccan",
+        arabic: "قُلْ هُوَ اللَّهُ أَحَدٌ • اللَّهُ الصَّمَدُ • لَمْ يَلِدْ وَلَمْ يُولَدْ • وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+        transliteration: "Qul Huwal-Lāhu Aḥad, Allāhuṣ-Ṣamad, Lam yalid wa lam yūlad, Wa lam yakul-lahū kufuwan aḥad",
+        translationEnglish: "Say, 'He is Allah, [who is] One, Allah, the Eternal Refuge. He neither begets nor is born, Nor is there to Him any equivalent.'",
+        translationAmharic: "በል «እርሱ አላህ አንድ ነው፤ አላህ (የሁሉ) መጠጊያ ነው፤ አልወለደም፤ አልተወለደምም፤ ለእርሱም አንድም ብጤ የለውም፡፡»",
+        tafsirArabic: "تقرير التوحيد الخالص: الله الأحد الفرد الصمد، المنزه عن الشريك والولد والمثيل.",
+        audioUrl: "https://everyayah.com/data/Alafasy_128kbps/112001.mp3",
+        juzNumber: 30
+      }
+    ];
+
+    let filtered = pool;
+    if (surahFilter && surahFilter > 0) {
+      filtered = filtered.filter((i) => i.surahNumber === surahFilter);
+    }
+    if (revelationFilter && revelationFilter !== "all") {
+      filtered = filtered.filter((i) => i.revelationType === revelationFilter);
+    }
+
+    // Shuffle
+    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count || 7);
   }
 }

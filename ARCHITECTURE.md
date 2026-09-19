@@ -123,16 +123,22 @@ server/
 │   ├── ai.controller.ts    # AI prompt validation & response routing
 │   ├── dashboard.controller.ts # Daily dashboard, prayer & quote API controller
 │   ├── health.controller.ts    # Healthcheck & uptime diagnostic controller
-│   └── places.controller.ts    # Masajid & Halal dining query controller
+│   ├── places.controller.ts    # Masajid & Halal dining query controller
+│   ├── quran.controller.ts     # Quran random ayahs, surah list & historical context controller
+│   └── qamus.controller.ts     # Arabic dictionary & morphology controller
 ├── routes/
 │   ├── index.ts            # Master API router mounting all sub-routes
 │   ├── ai.routes.ts        # /api/ai sub-router
 │   ├── dashboard.routes.ts # /api/dashboard sub-router
 │   ├── health.routes.ts    # /api/health sub-router
-│   └── places.routes.ts    # /api/places sub-router
+│   ├── places.routes.ts    # /api/places sub-router
+│   ├── quran.routes.ts     # /api/quran sub-router (random, surahs, historical)
+│   └── qamus.routes.ts     # /api/qamus sub-router
 ├── services/
 │   ├── gemini.service.ts   # Scholarly Islamic knowledge synthesis service
-│   └── places.service.ts   # Geo-directory indexing & facility filter service
+│   ├── places.service.ts   # Geo-directory indexing & facility filter service
+│   ├── quran.service.ts    # 114 Surahs dataset, random generator, Asbab al-Nuzul & Tafsir
+│   └── dashboard.service.ts # Server-side Solar Times, Curated Hadiths & Quotes
 └── types/
     └── index.ts            # Shared backend interfaces & HTTP contracts
 ```
