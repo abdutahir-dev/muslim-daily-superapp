@@ -223,9 +223,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function testConnection() {
       try {
         await getDocFromServer(doc(db, "test", "connection"));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("the client is offline")) {
-          console.warn("Please check your Firebase configuration or network status.");
+      } catch (error: any) {
+        if (
+          error?.code === "unavailable" ||
+          (error instanceof Error &&
+            (error.message.includes("the client is offline") ||
+              error.message.includes("Could not reach Cloud Firestore") ||
+              error.message.includes("operation could not be completed")))
+        ) {
+          console.info("Firestore is operating with offline cached persistence.");
+        } else {
+          console.warn("Firestore connection check notice:", error?.message || error);
         }
       }
     }

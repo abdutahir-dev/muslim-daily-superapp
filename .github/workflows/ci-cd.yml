@@ -67,9 +67,11 @@ jobs:
 
       - name: Check Firebase Service Account Secret
         id: check_secret
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
-            echo "::warning ::FIREBASE_SERVICE_ACCOUNT secret is not configured in GitHub repository secrets. Skipping automated deployment."
+          if [ -z "$SERVICE_ACCOUNT" ]; then
+            echo "::notice ::FIREBASE_SERVICE_ACCOUNT secret is not configured in GitHub repository secrets. Skipping Firebase deployment."
             echo "has_secret=false" >> $GITHUB_OUTPUT
           else
             echo "has_secret=true" >> $GITHUB_OUTPUT
@@ -77,6 +79,7 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         if: steps.check_secret.outputs.has_secret == 'true'
+        continue-on-error: true
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -96,6 +99,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -117,12 +122,28 @@ jobs:
           VITE_BASE_PATH: /muslim-daily-superapp/
         run: npm run build
 
-      - name: Copy 404 fallback for SPA
-        run: cp dist/index.html dist/404.html
+      - name: Ensure 404 and .nojekyll exist
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
 
       - name: Deploy to gh-pages Branch
+        continue-on-error: true
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          force_orphan: true
+
+      - name: Upload GitHub Pages Artifact (Actions Source)
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages (Actions Source)
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
 

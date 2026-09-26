@@ -49,19 +49,8 @@ googleProvider.setCustomParameters({
   prompt: "select_account",
 });
 
-// Firestore instance with the dedicated database ID and long-polling for proxy/iframe stability
-const databaseId =
-  config.firestoreDatabaseId && config.firestoreDatabaseId !== "(default)"
-    ? config.firestoreDatabaseId
-    : "(default)";
-
-export const db = initializeFirestore(
-  app,
-  {
-    experimentalForceLongPolling: true,
-  },
-  databaseId
-);
+// Firestore instance with the dedicated database ID
+export const db = getFirestore(app, config.firestoreDatabaseId);
 
 export {
   GoogleAuthProvider,
