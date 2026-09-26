@@ -21,12 +21,7 @@ jobs:
           cache: "npm"
 
       - name: Install Dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm install --no-audit --no-fund
 
       - name: Run ESLint & TypeScript Compilation Check
         run: npm run lint
@@ -37,7 +32,7 @@ jobs:
       - name: Build & Type-Check Serverless Cloud Functions
         run: |
           cd functions
-          npm install
+          npm install --no-audit --no-fund
           npm run build
 
       - name: Build Application
@@ -61,12 +56,7 @@ jobs:
           cache: "npm"
 
       - name: Install Dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm install --no-audit --no-fund
 
       - name: Build Production Assets
         env:
@@ -104,7 +94,7 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || 'gen-lang-client-0725368052' }}
         run: |
           cd functions
-          npm install
+          npm install --no-audit --no-fund
           npm run build
           cd ..
           npx firebase-tools deploy --only functions --project "$FIREBASE_PROJECT_ID"
@@ -134,12 +124,7 @@ jobs:
           cache: "npm"
 
       - name: Install Dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm install --no-audit --no-fund
 
       - name: Setup GitHub Pages Configuration
         uses: actions/configure-pages@v5
@@ -173,4 +158,3 @@ jobs:
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           force_orphan: true
-
