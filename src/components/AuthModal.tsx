@@ -7,14 +7,28 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   KeyRound,
   Sparkles,
+  Copy,
+  Check,
+  ExternalLink,
+  ArrowRight,
+  Info,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface GoogleAuthIssue {
+  type: "unauthorized_domain" | "operation_not_allowed" | "popup_blocked" | "other";
+  title: string;
+  message: string;
+  domain?: string;
+  rawCode?: string;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
@@ -24,6 +38,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
+    signInWithGoogleRedirect,
     sendPasswordReset,
     signOutUser,
     signInAsGuest,
@@ -37,13 +52,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleIssue, setGoogleIssue] = useState<GoogleAuthIssue | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   if (!isOpen) return null;
+
+  const currentHost = typeof window !== "undefined" ? window.location.hostname : "";
+
+  const handleCopyDomain = async () => {
+    if (!currentHost) return;
+    try {
+      await navigator.clipboard.writeText(currentHost);
+      setCopiedDomain(true);
+      setTimeout(() => setCopiedDomain(false), 2500);
+    } catch {
+      // Safe fallback
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
+    setGoogleIssue(null);
     setLoading(true);
 
     try {
@@ -71,11 +102,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         code === "auth/invalid-email"
       ) {
         message = "Invalid email or password.";
-      } else if (
-        code === "auth/popup-closed-by-user" ||
-        code === "auth/cancelled-popup-request"
-      ) {
-        message = "Sign-in was cancelled.";
       } else if (code === "auth/too-many-requests") {
         message = "Too many attempts. Please try again in a few moments.";
       } else if (err?.message) {
@@ -88,35 +114,74 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (preferRedirect = false) => {
     setErrorMsg(null);
+    setSuccessMsg(null);
+    setGoogleIssue(null);
     setLoading(true);
+
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(preferRedirect);
       onClose();
     } catch (err: any) {
       const code = err?.code || "";
-      if (
-        code === "auth/popup-closed-by-user" ||
-        code === "auth/cancelled-popup-request"
-      ) {
-        // Expected user action when dismissing the Google sign-in window
-        console.info("Google sign-in popup was dismissed by user.");
-        // Clear or show subtle status instead of an error state
-        setErrorMsg("Google sign-in was cancelled. You can try again or use email sign-in.");
-      } else if (code === "auth/popup-blocked") {
-        console.warn("Google sign-in popup blocked by browser:", err);
-        setErrorMsg(
-          "The sign-in popup was blocked by your browser. Please allow popups or use email sign-in below."
-        );
+      console.warn("Google auth encountered issue:", code, err);
+
+      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+        setErrorMsg("Google sign-in popup was closed. You can try again or use email sign-in.");
       } else if (code === "auth/unauthorized-domain") {
-        console.warn("Google sign-in unauthorized domain:", err);
-        setErrorMsg(
-          "This domain is not yet authorized in Firebase Console. Please use email sign-in or guest mode."
-        );
+        setGoogleIssue({
+          type: "unauthorized_domain",
+          title: "Domain Not Yet Authorized in Firebase",
+          message: `Firebase blocks Google OAuth from custom domains until added to the Authorized Domains list. To enable Google login here, add "${currentHost}" in your Firebase Console.`,
+          domain: currentHost,
+          rawCode: code,
+        });
+      } else if (code === "auth/operation-not-allowed") {
+        setGoogleIssue({
+          type: "operation_not_allowed",
+          title: "Google Sign-In Provider Disabled",
+          message: "Google Sign-In is not enabled yet in your Firebase Project. Enable it under Firebase Console > Authentication > Sign-in method.",
+          rawCode: code,
+        });
+      } else if (code === "auth/popup-blocked") {
+        setGoogleIssue({
+          type: "popup_blocked",
+          title: "Browser Blocked the Sign-In Popup",
+          message: "Your browser prevented the Google login window from opening. Tap below to use full-page redirect authentication instead.",
+          rawCode: code,
+        });
       } else {
-        console.warn("Google sign in notice:", err?.message || err);
-        setErrorMsg("Failed to sign in with Google. You can use email login instead.");
+        setGoogleIssue({
+          type: "other",
+          title: "Google Authentication Error",
+          message: err?.message || "An unexpected error occurred during Google Sign-In. You can sign in using Email or Guest mode.",
+          rawCode: code || "auth/unknown",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Quick 1-Click Demo account login for immediate sync testing
+  const handleQuickDemoLogin = async () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setLoading(true);
+    const demoEmail = "believer@muslimdaily.app";
+    const demoPass = "MuslimDaily2026!";
+
+    try {
+      await signInWithEmail(demoEmail, demoPass);
+      onClose();
+    } catch (err: any) {
+      // If demo user does not exist yet in project, auto-create it
+      try {
+        await signUpWithEmail(demoEmail, demoPass, "Dev Believer");
+        onClose();
+      } catch (createErr: any) {
+        setErrorMsg("Could not activate demo account. Please create your own account below.");
       }
     } finally {
       setLoading(false);
@@ -146,7 +211,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       id="auth-modal-backdrop"
       className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-md bg-[#F2F2F7] rounded-t-[28px] sm:rounded-[28px] border border-black/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-md bg-[#F2F2F7] rounded-t-[28px] sm:rounded-[28px] border border-black/10 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         {/* iOS Grabber & Navigation Header */}
         <div className="pt-2.5 pb-2 px-4 bg-white/95 border-b border-black/[0.08] sticky top-0 z-10 shrink-0">
           <div className="w-9 h-1 bg-[#8E8E93]/40 rounded-full mx-auto mb-2" />
@@ -178,7 +243,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     Active
                   </span>
                 </div>
-                
+
                 <div className="pt-1 space-y-1">
                   <p className="text-[#3A3A3C]">
                     <span className="font-semibold text-[#1C1C1E]">Email:</span> {user.email || "Linked Account"}
@@ -215,9 +280,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               {/* Google Fast Login Button */}
               <button
                 type="button"
-                onClick={handleGoogleSignIn}
+                onClick={() => handleGoogleSignIn(false)}
                 disabled={loading}
-                className="w-full py-2.5 px-3 rounded-[14px] bg-white border border-black/10 font-semibold text-xs text-[#1C1C1E] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xs cursor-pointer hover:bg-black/[0.02]"
+                className="w-full py-2.5 px-3 rounded-[14px] bg-white border border-black/10 font-semibold text-xs text-[#1C1C1E] flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xs cursor-pointer hover:bg-black/[0.02] disabled:opacity-60"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -237,8 +302,117 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Continue with Google</span>
+                <span>{loading ? "Connecting to Google..." : "Continue with Google"}</span>
               </button>
+
+              {/* Dedicated Diagnostic & Recovery Box for Google OAuth issues */}
+              {googleIssue && (
+                <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 space-y-2.5 animate-fadeIn shadow-xs">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-xs text-amber-900 leading-snug">
+                        {googleIssue.title}
+                      </p>
+                      <p className="text-[11px] text-amber-800/95 mt-1 leading-relaxed">
+                        {googleIssue.message}
+                      </p>
+                      {googleIssue.rawCode && (
+                        <p className="text-[10px] font-mono text-amber-700/80 mt-1">
+                          Code: {googleIssue.rawCode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {googleIssue.type === "unauthorized_domain" && (
+                    <div className="pt-1.5 border-t border-amber-200/70 space-y-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleCopyDomain}
+                          className="px-2.5 py-1 bg-white hover:bg-amber-100/70 border border-amber-300 text-amber-900 rounded-lg text-[11px] font-medium flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
+                        >
+                          {copiedDomain ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-700 font-semibold">Copied "{currentHost}"!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Copy "{currentHost}"</span>
+                            </>
+                          )}
+                        </button>
+                        <a
+                          href="https://console.firebase.google.com/project/gen-lang-client-0725368052/authentication/settings"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-medium flex items-center gap-1 transition-all shadow-xs"
+                        >
+                          <span>Open Firebase Settings</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-[10.5px] text-amber-800 leading-normal">
+                        <strong>Steps:</strong> Go to Firebase Console &rarr; Authentication &rarr; Settings &rarr; Authorized domains &rarr; Add domain &rarr; paste <code>{currentHost}</code>.
+                      </p>
+                    </div>
+                  )}
+
+                  {googleIssue.type === "operation_not_allowed" && (
+                    <div className="pt-1 border-t border-amber-200/70">
+                      <a
+                        href="https://console.firebase.google.com/project/gen-lang-client-0725368052/authentication/providers"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-medium transition-all shadow-xs"
+                      >
+                        <span>Enable Google Provider</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+
+                  {googleIssue.type === "popup_blocked" && (
+                    <div className="pt-1 border-t border-amber-200/70">
+                      <button
+                        type="button"
+                        onClick={() => handleGoogleSignIn(true)}
+                        className="px-2.5 py-1.5 bg-[#007A78] hover:bg-[#00695C] text-white rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      >
+                        <span>Sign In with Full Redirect</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 1-Click Fallback notice */}
+                  <div className="pt-1 text-[10.5px] text-amber-900/80 font-medium">
+                    Tip: You can instantly sign in using Email or 1-Click Demo Login below without editing Firebase settings!
+                  </div>
+                </div>
+              )}
+
+              {/* 1-Click Instant Demo Login shortcut */}
+              <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200/70 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#007A78] shrink-0" />
+                  <div>
+                    <p className="font-semibold text-xs text-[#007A78] leading-none">Instant 1-Click Sign In</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Test Firestore cloud sync immediately</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleQuickDemoLogin}
+                  disabled={loading}
+                  className="px-2.5 py-1 bg-[#007A78] hover:bg-[#00695C] text-white font-semibold text-[11px] rounded-lg shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Test Login
+                </button>
+              </div>
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-black/[0.08]" />
@@ -378,7 +552,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={handleGuestSignIn}
-                  className="text-[11px] text-[#8E8E93] hover:text-[#007A78] transition-colors"
+                  className="text-[11px] text-[#8E8E93] hover:text-[#007A78] transition-colors cursor-pointer"
                 >
                   Continue using local Guest Mode
                 </button>

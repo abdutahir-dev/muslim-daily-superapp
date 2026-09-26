@@ -14,6 +14,8 @@ import {
   signOut,
   updateProfile,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   googleProvider,
   sendPasswordResetEmail,
   type User,
@@ -140,7 +142,8 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   signUpEmail: (email: string, pass: string, name?: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name?: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (preferRedirect?: boolean) => Promise<void>;
+  signInWithGoogleRedirect: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   signInAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
@@ -222,6 +225,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initialize and observe Firebase Auth
   useEffect(() => {
+    // Check for pending redirect sign-in results (e.g. mobile browsers, PWA standalone mode)
+    getRedirectResult(auth)
+      .then((res) => {
+        if (res?.user) {
+          setUser(res.user);
+        }
+      })
+      .catch((err) => {
+        console.warn("Auth redirect result notice:", err?.code || err?.message);
+      });
+
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
@@ -702,8 +716,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Auth operations
-  const signInWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+  const signInWithGoogle = async (preferRedirect = false) => {
+    if (preferRedirect) {
+      await signInWithRedirect(auth, googleProvider);
+      return;
+    }
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (popupErr: any) {
+      // If popup was blocked by browser and window is top-level (not inside an iframe), fallback to redirect
+      if (
+        (popupErr?.code === "auth/popup-blocked" ||
+          popupErr?.code === "auth/cancelled-popup-request") &&
+        typeof window !== "undefined" &&
+        window.self === window.top
+      ) {
+        console.info("Popup blocked. Falling back to signInWithRedirect...");
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      throw popupErr;
+    }
+  };
+
+  const signInWithGoogleRedirect = async () => {
+    await signInWithRedirect(auth, googleProvider);
   };
 
   const signInEmail = async (email: string, pass: string) => {
@@ -779,6 +816,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUpEmail,
         signUpWithEmail,
         signInWithGoogle,
+        signInWithGoogleRedirect,
         sendPasswordReset,
         signInAsGuest,
         logout,

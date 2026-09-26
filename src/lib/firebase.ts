@@ -3,6 +3,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithCredential,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInAnonymously,
@@ -60,6 +63,9 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
  */
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+// Explicitly request email and profile scopes for Google Sign-In
+googleProvider.addScope("email");
+googleProvider.addScope("profile");
 googleProvider.setCustomParameters({
   prompt: "select_account",
 });
@@ -86,6 +92,9 @@ export const storage = getStorage(app);
 export {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithCredential,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInAnonymously,
