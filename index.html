@@ -24,7 +24,29 @@
   </head>
   <body class="bg-[#F2F2F7] text-[#1C1C1E] antialiased selection:bg-[#007A78] selection:text-white">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Fallback detector if GitHub Pages is mistakenly pointing to raw repository main branch instead of GitHub Actions / gh-pages
+      window.addEventListener('error', function(e) {
+        if (e.target && e.target.src && (e.target.src.includes('main.tsx') || e.target.src.endsWith('.tsx'))) {
+          var root = document.getElementById('root');
+          if (root && !root.hasChildNodes()) {
+            root.innerHTML = '<div style="display:flex;min-height:100vh;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;background:#0F766E;color:white;text-align:center;">' +
+              '<div style="max-width:520px;background:rgba(255,255,255,0.12);padding:32px;border-radius:24px;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 20px 40px rgba(0,0,0,0.2);">' +
+              '<div style="font-size:48px;margin-bottom:12px;">🕌</div>' +
+              '<h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Muslim Daily SuperApp</h1>' +
+              '<p style="font-size:15px;opacity:0.92;margin-bottom:20px;line-height:1.5;">GitHub Pages is currently serving the uncompiled repository source files instead of the production build.</p>' +
+              '<div style="font-size:13px;background:rgba(0,0,0,0.25);padding:16px;border-radius:14px;text-align:left;line-height:1.6;">' +
+              '<strong>How to activate your live app in 10 seconds:</strong><br/>' +
+              '1. Go to your GitHub repository <strong>Settings &rarr; Pages</strong><br/>' +
+              '2. Under <em>Build and deployment &rarr; Source</em>, select <strong>GitHub Actions</strong><br/>' +
+              '3. Trigger the workflow in <strong>Actions</strong> tab to deploy automatically!' +
+              '</div>' +
+              '</div></div>';
+          }
+        }
+      }, true);
+    </script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
 

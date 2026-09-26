@@ -564,12 +564,8 @@ export const QuranApp: React.FC<QuranAppProps> = ({ initialSurahNumber }) => {
         {/* Modal for Difference inspection */}
         {inspectingDifference && (
           <QiraatDifferenceModal
-            isOpen={true}
-            onClose={() => setInspectingDifference(null)}
             difference={inspectingDifference.difference}
-            surahName={inspectingDifference.surahName}
-            ayahNumber={inspectingDifference.ayahNumber}
-            currentArabicText={inspectingDifference.arabicText}
+            onClose={() => setInspectingDifference(null)}
           />
         )}
 
