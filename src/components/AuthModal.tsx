@@ -17,6 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { oAuthClientId, firebaseConfig } from "../lib/firebase";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ interface AuthModalProps {
 }
 
 interface GoogleAuthIssue {
-  type: "unauthorized_domain" | "operation_not_allowed" | "popup_blocked" | "other";
+  type: "unauthorized_domain" | "operation_not_allowed" | "popup_blocked" | "configuration_not_found" | "other";
   title: string;
   message: string;
   domain?: string;
@@ -54,6 +55,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [googleIssue, setGoogleIssue] = useState<GoogleAuthIssue | null>(null);
   const [copiedDomain, setCopiedDomain] = useState(false);
+  const [copiedClientId, setCopiedClientId] = useState(false);
+  const [copiedAppId, setCopiedAppId] = useState(false);
 
   if (!isOpen) return null;
 
@@ -65,6 +68,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await navigator.clipboard.writeText(currentHost);
       setCopiedDomain(true);
       setTimeout(() => setCopiedDomain(false), 2500);
+    } catch {
+      // Safe fallback
+    }
+  };
+
+  const handleCopyClientId = async () => {
+    if (!oAuthClientId) return;
+    try {
+      await navigator.clipboard.writeText(oAuthClientId);
+      setCopiedClientId(true);
+      setTimeout(() => setCopiedClientId(false), 2500);
+    } catch {
+      // Safe fallback
+    }
+  };
+
+  const handleCopyAppId = async () => {
+    if (!firebaseConfig.appId) return;
+    try {
+      await navigator.clipboard.writeText(firebaseConfig.appId);
+      setCopiedAppId(true);
+      setTimeout(() => setCopiedAppId(false), 2500);
     } catch {
       // Safe fallback
     }
@@ -90,6 +115,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       }
     } catch (err: any) {
       const code = err?.code || "";
+      if (code === "auth/configuration-not-found") {
+        setGoogleIssue({
+          type: "configuration_not_found",
+          title: "Firebase Authentication Not Yet Activated",
+          message: "Firebase Authentication has not been initialized for this project in the Firebase Console yet. Click 'Get started' in the Firebase Console to enable it.",
+          rawCode: code,
+        });
+        return;
+      }
       let message = "Authentication failed. Please verify your credentials.";
       if (code === "auth/email-already-in-use") {
         message = "This email is already registered. Please sign in instead.";
@@ -129,6 +163,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
       if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
         setErrorMsg("Google sign-in popup was closed. You can try again or use email sign-in.");
+      } else if (code === "auth/configuration-not-found") {
+        setGoogleIssue({
+          type: "configuration_not_found",
+          title: "Firebase Authentication Not Yet Activated",
+          message: "Firebase Authentication has not been initialized for this project in the Firebase Console yet. Click 'Get started' in the Firebase Console to enable it.",
+          rawCode: code,
+        });
       } else if (code === "auth/unauthorized-domain") {
         setGoogleIssue({
           type: "unauthorized_domain",
@@ -176,11 +217,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       await signInWithEmail(demoEmail, demoPass);
       onClose();
     } catch (err: any) {
+      const code = err?.code || "";
+      if (code === "auth/configuration-not-found") {
+        setGoogleIssue({
+          type: "configuration_not_found",
+          title: "Firebase Authentication Not Activated in Project",
+          message: "Firebase Authentication has not been initialized for this Google Cloud project. You need to click 'Get started' once in the Firebase Console.",
+          rawCode: code,
+        });
+        return;
+      }
       // If demo user does not exist yet in project, auto-create it
       try {
         await signUpWithEmail(demoEmail, demoPass, "Dev Believer");
         onClose();
       } catch (createErr: any) {
+        const createCode = createErr?.code || "";
+        if (createCode === "auth/configuration-not-found") {
+          setGoogleIssue({
+            type: "configuration_not_found",
+            title: "Firebase Authentication Not Activated in Project",
+            message: "Firebase Authentication has not been initialized for this Google Cloud project. You need to click 'Get started' once in the Firebase Console.",
+            rawCode: createCode,
+          });
+          return;
+        }
         setErrorMsg("Could not activate demo account. Please create your own account below.");
       }
     } finally {
@@ -324,6 +385,128 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                       )}
                     </div>
                   </div>
+
+                  {googleIssue.type === "configuration_not_found" && (
+                    <div className="pt-2 border-t border-amber-200/70 space-y-2.5">
+                      <div className="bg-white/90 p-3 rounded-xl border border-amber-200/80 text-[11px] text-amber-950 space-y-2.5 shadow-xs">
+                        <div className="flex items-center gap-1.5 font-semibold text-[#007A78]">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Resolve auth/configuration-not-found (Quick Checklist):</span>
+                        </div>
+                        <ol className="list-decimal pl-4 space-y-2 text-slate-700">
+                          <li>
+                            <div className="font-semibold text-slate-900">Activate Firebase Authentication:</div>
+                            <p className="text-[10.5px] text-slate-600 mt-0.5">
+                              Open the Auth Console and click the blue <strong>"Get started"</strong> button to provision Identity Platform.
+                            </p>
+                            <div className="mt-1">
+                              <a
+                                href="https://console.firebase.google.com/project/gen-lang-client-0725368052/authentication"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#007A78] hover:bg-[#00695C] text-white rounded-lg font-medium text-[11px] shadow-xs"
+                              >
+                                <span>1. Open Firebase Auth &rarr; Click 'Get started'</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </li>
+                          <li>
+                            <div className="font-semibold text-slate-900">Enable Google Provider & OAuth Client ID:</div>
+                            <p className="text-[10.5px] text-slate-600 mt-0.5">
+                              Go to <strong>Sign-in method &rarr; Google &rarr; Enable</strong>. Select your support email.
+                            </p>
+                            {oAuthClientId && (
+                              <div className="mt-1 p-2 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] uppercase font-bold text-slate-500">Your OAuth Client ID</span>
+                                  <button
+                                    type="button"
+                                    onClick={handleCopyClientId}
+                                    className="px-2 py-0.5 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium flex items-center gap-1 hover:bg-slate-100 cursor-pointer shadow-xs active:scale-95"
+                                  >
+                                    {copiedClientId ? (
+                                      <>
+                                        <Check className="w-3 h-3 text-emerald-600" />
+                                        <span className="text-emerald-700 font-semibold">Copied!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="w-3 h-3 text-slate-600" />
+                                        <span>Copy Client ID</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                                <code className="block text-[9.5px] font-mono text-slate-800 break-all select-all">
+                                  {oAuthClientId}
+                                </code>
+                              </div>
+                            )}
+                            <div className="mt-1">
+                              <a
+                                href="https://console.firebase.google.com/project/gen-lang-client-0725368052/authentication/providers"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-[11px] shadow-xs"
+                              >
+                                <span>2. Open Sign-in Providers</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </li>
+                          <li>
+                            <div className="font-semibold text-slate-900">Verify Firebase Web App:</div>
+                            <p className="text-[10.5px] text-slate-600 mt-0.5">
+                              In <strong>Project Settings &rarr; General</strong>, verify your Web App is registered.
+                            </p>
+                            {firebaseConfig.appId && (
+                              <div className="mt-1 p-2 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                                <div>
+                                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Web App ID</span>
+                                  <code className="text-[10px] font-mono text-slate-800">{firebaseConfig.appId}</code>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={handleCopyAppId}
+                                  className="px-2 py-0.5 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium flex items-center gap-1 hover:bg-slate-100 cursor-pointer shadow-xs active:scale-95"
+                                >
+                                  {copiedAppId ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                      <span className="text-emerald-700 font-semibold">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3 text-slate-600" />
+                                      <span>Copy App ID</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                            <div className="mt-1">
+                              <a
+                                href="https://console.firebase.google.com/project/gen-lang-client-0725368052/settings/general"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium text-[11px] shadow-xs"
+                              >
+                                <span>3. Open Project Settings (Your Apps)</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </li>
+                          <li>
+                            <div className="font-semibold text-slate-900">Done! Return and Sign In:</div>
+                            <p className="text-[10.5px] text-slate-600 mt-0.5">
+                              Once saved in Firebase Console, return here and tap <strong>Continue with Google</strong>!
+                            </p>
+                          </li>
+                        </ol>
+                      </div>
+                    </div>
+                  )}
 
                   {googleIssue.type === "unauthorized_domain" && (
                     <div className="pt-1.5 border-t border-amber-200/70 space-y-2">

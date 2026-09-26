@@ -89,7 +89,12 @@ export const db =
  */
 export const storage = getStorage(app);
 
+export const oAuthClientId =
+  import.meta.env.VITE_FIREBASE_OAUTH_CLIENT_ID || config.oAuthClientId || "";
+
 export {
+  app as firebaseApp,
+  firebaseConfig,
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
