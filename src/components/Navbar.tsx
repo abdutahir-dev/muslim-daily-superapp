@@ -7,18 +7,39 @@ import {
   User as UserIcon,
   RefreshCw,
   Sparkles,
+  ChevronLeft,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getHijriDate } from "../lib/prayerTimes";
+import { MiniAppId } from "../types";
 
 interface NavbarProps {
+  currentTab?: MiniAppId;
+  onNavigateBackToApps?: () => void;
   onOpenSettings: () => void;
   onOpenAuth: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenAuth }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  currentTab,
+  onNavigateBackToApps,
+  onOpenSettings,
+  onOpenAuth,
+}) => {
   const { user, isGuest, preferences, isSyncing, requestGeolocation } = useAuth();
   const hijri = getHijriDate(new Date(), preferences.hijriAdjustmentDays);
+
+  const isSubApp = [
+    "qibla",
+    "tasbih",
+    "adhkar",
+    "habits",
+    "zakat",
+    "places",
+    "ai",
+    "assistant",
+    "qamus",
+  ].includes(currentTab || "");
 
   return (
     <header
@@ -26,27 +47,44 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenAuth }) =>
       className="sticky top-0 z-40 w-full ios-blur border-b border-black/[0.06] transition-all"
     >
       <div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* Left: iOS App Identity & Hijri Date */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[9px] bg-gradient-to-b from-[#00897B] to-[#00695C] text-white flex items-center justify-center shadow-xs shadow-teal-900/20">
-            <Moon className="w-4 h-4 text-teal-100" />
+        {/* Left: Either Back to Apps or Brand Identity */}
+        {isSubApp && onNavigateBackToApps ? (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onNavigateBackToApps}
+              className="flex items-center gap-0.5 text-xs font-semibold text-[#007A78] hover:text-[#005D5B] active:scale-95 transition-all py-1 px-2 rounded-xl bg-[#007A78]/10 hover:bg-[#007A78]/15 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 stroke-[2.4px]" />
+              <span>Apps Hub</span>
+            </button>
+            <div className="h-4 w-px bg-slate-200" />
+            <span className="text-xs font-semibold text-slate-800 capitalize">
+              {currentTab === "ai" ? "AI Assistant" : currentTab}
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-[15px] font-semibold tracking-tight text-[#1C1C1E] leading-none">
-                Muslim Daily
-              </h1>
-              <span className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-[#007A78]/10 text-[#007A78]">
-                SuperApp
-              </span>
+        ) : (
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-[9px] bg-gradient-to-b from-[#00897B] to-[#00695C] text-white flex items-center justify-center shadow-xs shadow-teal-900/20">
+              <Moon className="w-4 h-4 text-teal-100" />
             </div>
-            <p className="text-[11px] text-[#8E8E93] font-normal leading-tight mt-0.5 flex items-center gap-1">
-              <span>{hijri.formatted}</span>
-              <span className="text-[#C7C7CC]">•</span>
-              <span className="text-[#007A78] font-arabic font-medium">{hijri.monthNameArabic}</span>
-            </p>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-[15px] font-semibold tracking-tight text-[#1C1C1E] leading-none">
+                  Muslim Daily
+                </h1>
+                <span className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-[#007A78]/10 text-[#007A78]">
+                  SuperApp
+                </span>
+              </div>
+              <p className="text-[11px] text-[#8E8E93] font-normal leading-tight mt-0.5 flex items-center gap-1">
+                <span>{hijri.formatted}</span>
+                <span className="text-[#C7C7CC]">•</span>
+                <span className="text-[#007A78] font-arabic font-medium">{hijri.monthNameArabic}</span>
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right: Location chip, Settings, Profile Avatar */}
         <div className="flex items-center gap-1.5">

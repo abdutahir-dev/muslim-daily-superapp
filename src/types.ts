@@ -3,6 +3,7 @@ export type MiniAppId =
   | "prayer"
   | "quran"
   | "quotes"
+  | "apps"
   | "qibla"
   | "tasbih"
   | "adhkar"

@@ -17,8 +17,8 @@ import { QuotesApp } from "../miniapps/quotes";
 import { QamusApp } from "../miniapps/qamus";
 import { SettingsModal } from "../components/SettingsModal";
 import { AuthModal } from "../components/AuthModal";
-import { MoreAppsSheet } from "../components/MoreAppsSheet";
 import { OnboardingWizard } from "../components/OnboardingWizard";
+import { AppsPage } from "../pages/AppsPage";
 
 /**
  * SuperApp Shell Container
@@ -29,7 +29,6 @@ export const SuperAppShell: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<MiniAppId>("home");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isMoreAppsOpen, setIsMoreAppsOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   useEffect(() => {
@@ -47,6 +46,8 @@ export const SuperAppShell: React.FC = () => {
    */
   const renderActiveMiniApp = () => {
     switch (currentTab) {
+      case "apps":
+        return <AppsPage onSelectApp={(tab) => setCurrentTab(tab)} />;
       case "prayer":
         return (
           <PrayerTimesApp
@@ -92,6 +93,8 @@ export const SuperAppShell: React.FC = () => {
       {/* Top Navigation Bar for sub-apps */}
       {currentTab !== "home" && (
         <Navbar
+          currentTab={currentTab}
+          onNavigateBackToApps={() => setCurrentTab("apps")}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
@@ -106,14 +109,14 @@ export const SuperAppShell: React.FC = () => {
         {renderActiveMiniApp()}
       </main>
 
-      {/* iOS-Style Bottom Dock / Tab Navigation */}
+      {/* iOS-Style Bottom Dock / Tab Navigation with Five Tabs & Animated Circular Selection */}
       <TabBar
         activeTab={currentTab}
         onSelectTab={(tab) => setCurrentTab(tab)}
-        onOpenMoreMenu={() => setIsMoreAppsOpen(true)}
+        onOpenMoreMenu={() => setCurrentTab("apps")}
       />
 
-      {/* Global Shared Modals & Sheets */}
+      {/* Global Shared Modals */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -128,12 +131,6 @@ export const SuperAppShell: React.FC = () => {
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         onOpenAuth={() => setIsAuthOpen(true)}
-      />
-      <MoreAppsSheet
-        isOpen={isMoreAppsOpen}
-        onClose={() => setIsMoreAppsOpen(false)}
-        activeTab={currentTab}
-        onSelectTab={(tab) => setCurrentTab(tab)}
       />
     </div>
   );
