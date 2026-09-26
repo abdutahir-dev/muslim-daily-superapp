@@ -31,6 +31,15 @@ jobs:
       - name: Run ESLint & TypeScript Compilation Check
         run: npm run lint
 
+      - name: Run Vitest Unit Tests
+        run: npm test
+
+      - name: Build & Type-Check Serverless Cloud Functions
+        run: |
+          cd functions
+          npm install
+          npm run build
+
       - name: Build Application
         env:
           NODE_ENV: production
@@ -87,6 +96,19 @@ jobs:
           channelId: live
           projectId: '${{ secrets.FIREBASE_PROJECT_ID || "gen-lang-client-0725368052" }}'
 
+      - name: Deploy to Firebase Cloud Functions
+        if: steps.check_secret.outputs.has_secret == 'true'
+        continue-on-error: true
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || "gen-lang-client-0725368052" }}
+        run: |
+          cd functions
+          npm install
+          npm run build
+          cd ..
+          npx firebase-tools deploy --only functions --project "$FIREBASE_PROJECT_ID"
+
   deploy-github-pages:
     name: Deploy to GitHub Pages
     needs: validate
@@ -95,6 +117,9 @@ jobs:
       contents: write
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -116,18 +141,30 @@ jobs:
             npm install
           fi
 
+      - name: Setup GitHub Pages Configuration
+        uses: actions/configure-pages@v5
+
       - name: Build Application for GitHub Pages
         env:
           NODE_ENV: production
           VITE_BASE_PATH: /muslim-daily-superapp/
         run: npm run build
 
-      - name: Ensure 404 and .nojekyll exist
+      - name: Ensure SPA 404 and .nojekyll exist
         run: |
           cp dist/index.html dist/404.html
           touch dist/.nojekyll
 
-      - name: Deploy to gh-pages Branch
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages (Actions Source)
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deploy to gh-pages Branch (Branch Source Fallback)
         continue-on-error: true
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -136,14 +173,4 @@ jobs:
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           force_orphan: true
-
-      - name: Upload GitHub Pages Artifact (Actions Source)
-        continue-on-error: true
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
-      - name: Deploy to GitHub Pages (Actions Source)
-        continue-on-error: true
-        uses: actions/deploy-pages@v4
 

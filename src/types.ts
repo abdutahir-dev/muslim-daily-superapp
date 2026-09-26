@@ -286,7 +286,7 @@ export interface HabitTrackerDay {
     tahajjud: boolean;
     witr: boolean;
   };
-  fasting: "none" | "ramadan" | "sunnah_monday" | "sunnah_thursday" | "white_days" | "voluntary";
+  fasting: "none" | "ramadan" | "sunnah_monday" | "sunnah_thursday" | "white_days" | "voluntary" | "qada";
   quranPagesRead: number;
   adhkarMorning: boolean;
   adhkarEvening: boolean;

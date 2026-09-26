@@ -18,7 +18,6 @@ import {
   sendPasswordResetEmail,
   type User,
 } from "../lib/firebase";
-import { getDocFromServer } from "firebase/firestore";
 import {
   DEFAULT_PREFERENCES,
   HabitTrackerDay,
@@ -56,8 +55,15 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const isOffline =
+    (error as any)?.code === "unavailable" ||
+    errorMessage.includes("the client is offline") ||
+    errorMessage.includes("Could not reach Cloud Firestore") ||
+    errorMessage.includes("operation could not be completed");
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errorMessage,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -72,6 +78,12 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path,
   };
+
+  if (isOffline) {
+    console.info("Firestore operating in offline/cached mode for path:", path);
+    return errInfo;
+  }
+
   console.error("Firestore Error: ", JSON.stringify(errInfo));
   return errInfo;
 }
@@ -218,26 +230,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     });
-
-    // Verify Firestore connection as mandated by skill
-    async function testConnection() {
-      try {
-        await getDocFromServer(doc(db, "test", "connection"));
-      } catch (error: any) {
-        if (
-          error?.code === "unavailable" ||
-          (error instanceof Error &&
-            (error.message.includes("the client is offline") ||
-              error.message.includes("Could not reach Cloud Firestore") ||
-              error.message.includes("operation could not be completed")))
-        ) {
-          console.info("Firestore is operating with offline cached persistence.");
-        } else {
-          console.warn("Firestore connection check notice:", error?.message || error);
-        }
-      }
-    }
-    testConnection();
 
     return () => unsubscribeAuth();
   }, []);

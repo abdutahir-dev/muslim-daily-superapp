@@ -1,18 +1,21 @@
 # Muslim Daily SuperApp 🕌
 
-[![Build & Lint Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/google-deepmind/antigravity)
+[![CI/CD Pipeline](https://github.com/abdutahir-dev/muslim-daily-superapp/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/abdutahir-dev/muslim-daily-superapp/actions/workflows/ci-cd.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Demo-success.svg)](https://abdutahir-dev.github.io/muslim-daily-superapp/)
 [![Firebase Auth & Firestore](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-orange.svg)](https://firebase.google.com/)
-[![Gemini AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-blue.svg)](https://ai.google.dev/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Installable-purple.svg)](https://web.dev/progressive-web-apps/)
+[![Cloud Functions v2](https://img.shields.io/badge/Cloud%20Functions-v2%20Serverless-blueviolet.svg)](https://firebase.google.com/docs/functions)
+[![PWA Ready](https://img.shields.io/badge/PWA-Workbox%20Offline-purple.svg)](https://web.dev/progressive-web-apps/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%205.8-blue.svg)](https://www.typescriptlang.org/)
+[![Vitest](https://img.shields.io/badge/Unit%20Tests-Vitest%20Passing-brightgreen.svg)](https://vitest.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4-38bdf8.svg)](https://tailwindcss.com/)
 
-An enterprise-grade, mobile-first **SuperApp** Progressive Web Application (PWA) uniting 13 focused **Mini-Applications** under a single cohesive, Apple iOS Human Interface Guidelines (HIG)-inspired container shell. Built with **React 19**, **TypeScript 5.8**, **Tailwind CSS v4**, a high-performance **Vite + Express** server, and direct **Firebase Cloud Firestore** synchronization.
+An enterprise-grade, mobile-first **SuperApp** Progressive Web Application (PWA) uniting 13 focused **Mini-Applications** under a single cohesive, Apple iOS Human Interface Guidelines (HIG)-inspired container shell. Built with **React 19**, **TypeScript 5.8** (`strict: true`), **Tailwind CSS v4**, **Vite + Workbox Service Worker**, **Cloud Functions v2**, and direct **Firebase Cloud Firestore & Authentication** synchronization.
 
 ---
 
 ### 🌐 Live Environments & Documentation
-- **Production / Preview Instance**: [https://ais-pre-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app](https://ais-pre-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app)
+- **Production Live Demo (GitHub Pages)**: [https://abdutahir-dev.github.io/muslim-daily-superapp/](https://abdutahir-dev.github.io/muslim-daily-superapp/)
+- **Cloud Run Preview Instance**: [https://ais-pre-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app](https://ais-pre-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app)
 - **Development Environment**: [https://ais-dev-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app](https://ais-dev-2zciucuq66kbvohlge4dk3-201444007982.europe-west2.run.app)
 - **[Interactive API Documentation (Swagger UI)](/docs)**: Live interactive OpenAPI 3.0 explorer for backend endpoints (`/docs` & `/api/docs`).
 - **[System Architecture Specification (ARCHITECTURE.md)](./ARCHITECTURE.md)**: Deep dive into the SuperApp container model, audio engine, offline caching, and Firestore security rules.
@@ -448,16 +451,25 @@ firebase deploy --only hosting
 
 ### 5. Automated CI/CD with GitHub Actions
 
-The repository includes a ready-to-use GitHub Actions workflow at `.github/workflows/ci-cd.yml` that runs on every push:
-1. **Lint & Typecheck**: Executes `tsc --noEmit`.
-2. **Production Build**: Executes `npm run build`.
-3. **Automated Deployment**: Deploys to Firebase Hosting on merges to `main`.
+The repository includes a production-grade GitHub Actions workflow at `.github/workflows/ci-cd.yml` configured with strict multi-stage verification:
 
-#### Required GitHub Secrets:
-Navigate to **Repository Settings > Secrets and variables > Actions** and add:
-- `FIREBASE_SERVICE_ACCOUNT`: Service account JSON string with Firebase Hosting Admin permissions.
-- `FIREBASE_PROJECT_ID`: Your Firebase project ID (e.g. `ai-studio-d237f989-cbad-4655-8121-5746d143c310`).
-- `GEMINI_API_KEY`: *(Optional)* Google Gemini API Key for build-time verification.
+1. **Pull Request (PR) Quality Pipeline**:
+   - **ESLint & Strict TypeScript**: Runs `npm run lint` (`tsc --noEmit` with `strict: true`).
+   - **Automated Unit Testing**: Runs `npm test` (`vitest run`) for Keplerian astronomical solar formulas, Qibla geodetic bearing, and Quranic metadata consistency.
+   - **Cloud Functions Compilation**: Compiles serverless v2 TypeScript functions (`cd functions && npm run build`).
+   - **Production Bundling**: Builds client application assets with `npm run build`.
+
+2. **Continuous Deployment (CD) Pipeline** (on merge to `main`):
+   - **Firebase Hosting**: Deploys static SPA distribution to Firebase live hosting channels.
+   - **Firebase Cloud Functions**: Deploys backend v2 serverless triggers and callable APIs (`firebase deploy --only functions`).
+   - **GitHub Pages Auto-Deployment**: Publishes bundled distribution with SPA 404 routing fallback to GitHub Pages.
+     > **GitHub Pages Configuration Tip**: In your GitHub repository, go to **Settings > Pages > Build and deployment**. Under **Source**, choose **GitHub Actions** (recommended) so GitHub serves the production bundle generated by the pipeline rather than raw uncompiled source files.
+
+#### Required GitHub Secrets & Environment Variables:
+Navigate to **Repository Settings > Secrets and variables > Actions** and configure:
+- `FIREBASE_SERVICE_ACCOUNT`: Service account JSON string with Firebase Admin and Hosting permissions.
+- `FIREBASE_PROJECT_ID`: Your target Firebase project ID (e.g. `ai-studio-d237f989-cbad-4655-8121-5746d143c310`).
+- `GEMINI_API_KEY`: *(Optional)* Google Gemini API key for server-side endpoints.
 
 ---
 

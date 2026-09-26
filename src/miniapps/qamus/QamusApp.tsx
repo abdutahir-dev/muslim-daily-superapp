@@ -105,11 +105,12 @@ export const QamusApp: React.FC = () => {
   // 2. Sync saved words with Firestore when authenticated
   useEffect(() => {
     if (!user) return;
+    const currentUser = user;
     let isMounted = true;
 
     async function loadUserVocabulary() {
       try {
-        const vocabRef = collection(db, "users", user.uid, "vocabulary");
+        const vocabRef = collection(db, "users", currentUser.uid, "vocabulary");
         const snap = await getDocs(vocabRef);
         if (!snap.empty && isMounted) {
           const remoteList: SavedQamusWord[] = [];
@@ -124,7 +125,7 @@ export const QamusApp: React.FC = () => {
           });
         }
       } catch (error) {
-        handleFirestoreError(error, OperationType.LIST, `users/${user.uid}/vocabulary`);
+        handleFirestoreError(error, OperationType.LIST, `users/${currentUser.uid}/vocabulary`);
       }
     }
 
