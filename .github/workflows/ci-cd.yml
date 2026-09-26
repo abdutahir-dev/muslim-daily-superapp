@@ -91,17 +91,17 @@ jobs:
         continue-on-error: true
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID || "gen-lang-client-0725368052" }}'
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID || 'gen-lang-client-0725368052' }}
 
       - name: Deploy to Firebase Cloud Functions
         if: steps.check_secret.outputs.has_secret == 'true'
         continue-on-error: true
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || "gen-lang-client-0725368052" }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || 'gen-lang-client-0725368052' }}
         run: |
           cd functions
           npm install
