@@ -91,7 +91,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   latitude: 51.5074,
   longitude: -0.1278,
   timeFormat24h: false,
-  onboardingCompleted: false,
+  onboardingCompleted: true,
   notificationsEnabled: true,
   fajrWakeupOffsetMinutes: 20,
   dailyGoalQuranPages: 4,

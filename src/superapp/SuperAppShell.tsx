@@ -31,15 +31,46 @@ export const SuperAppShell: React.FC = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
+  // Sync with window URL hash if present on initial load or browser forward/back
   useEffect(() => {
-    // Automatically trigger onboarding wizard on first visit if not completed
-    if (preferences && preferences.onboardingCompleted === false) {
-      const skipped = localStorage.getItem("muslim_daily_onboarding_skipped");
-      if (!skipped) {
-        setIsOnboardingOpen(true);
+    const handleHash = () => {
+      const rawHash = window.location.hash.replace("#", "").trim();
+      const validTabs: MiniAppId[] = [
+        "home",
+        "prayer",
+        "quran",
+        "qibla",
+        "tasbih",
+        "adhkar",
+        "habits",
+        "zakat",
+        "places",
+        "ai",
+        "assistant",
+        "quotes",
+        "qamus",
+        "apps",
+      ];
+      if (rawHash && validTabs.includes(rawHash as MiniAppId)) {
+        setCurrentTab(rawHash as MiniAppId);
       }
+    };
+
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, []);
+
+  const handleSelectTab = (tab: MiniAppId) => {
+    setCurrentTab(tab);
+    if (tab === "home") {
+      if (window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    } else {
+      window.location.hash = tab;
     }
-  }, [preferences?.onboardingCompleted]);
+  };
 
   /**
    * Router / Renderer for currently active Mini-Application
@@ -47,7 +78,7 @@ export const SuperAppShell: React.FC = () => {
   const renderActiveMiniApp = () => {
     switch (currentTab) {
       case "apps":
-        return <AppsPage onSelectApp={(tab) => setCurrentTab(tab)} />;
+        return <AppsPage onSelectApp={(tab) => handleSelectTab(tab)} />;
       case "prayer":
         return (
           <PrayerTimesApp
@@ -80,7 +111,7 @@ export const SuperAppShell: React.FC = () => {
       default:
         return (
           <HomeDashboard
-            onSelectApp={(tab) => setCurrentTab(tab)}
+            onSelectApp={(tab) => handleSelectTab(tab)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenAuth={() => setIsAuthOpen(true)}
           />
@@ -94,7 +125,7 @@ export const SuperAppShell: React.FC = () => {
       {currentTab !== "home" && (
         <Navbar
           currentTab={currentTab}
-          onNavigateBackToApps={() => setCurrentTab("apps")}
+          onNavigateBackToApps={() => handleSelectTab("apps")}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
@@ -112,8 +143,8 @@ export const SuperAppShell: React.FC = () => {
       {/* iOS-Style Bottom Dock / Tab Navigation with Five Tabs & Animated Circular Selection */}
       <TabBar
         activeTab={currentTab}
-        onSelectTab={(tab) => setCurrentTab(tab)}
-        onOpenMoreMenu={() => setCurrentTab("apps")}
+        onSelectTab={(tab) => handleSelectTab(tab)}
+        onOpenMoreMenu={() => handleSelectTab("apps")}
       />
 
       {/* Global Shared Modals */}
