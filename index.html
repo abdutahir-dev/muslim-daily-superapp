@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Muslim Daily SuperApp</title>
+    <meta name="description" content="Unified Islamic daily companion integrating Prayer Times & Adhan, Holy Quran with recitation, Qibla Compass, Digital Tasbih, Adhkar, Habit Tracker, Zakat Calculator, Halal & Mosque Finder, with Firebase Auth & shared preferences." />
+    <meta property="og:title" content="Muslim Daily SuperApp" />
+    <meta property="og:description" content="Unified Islamic daily companion integrating Prayer Times & Adhan, Holy Quran with recitation, Qibla Compass, Digital Tasbih, Adhkar, Habit Tracker, Zakat Calculator, Halal & Mosque Finder, with Firebase Auth & shared preferences." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- iOS and PWA mobile configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Muslim Daily" />
+    <meta name="theme-color" content="#0F766E" />
+    <link rel="manifest" href="/muslim-daily-superapp/assets/manifest-LEpf1XlN.json" />
+
+    <!-- Google Fonts for authentic Arabic Typography (Amiri & Scheherazade) & Latin typography (Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Scheherazade+New:wght@400;600;700&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/muslim-daily-superapp/assets/index-BcsIWvyH.js"></script>
+    <link rel="stylesheet" crossorigin href="/muslim-daily-superapp/assets/index-C5U4HwMh.css">
+  </head>
+  <body class="bg-[#F2F2F7] text-[#1C1C1E] antialiased selection:bg-[#007A78] selection:text-white">
+    <div id="root"></div>
+    <script>
+      // Fallback detector if GitHub Pages is mistakenly pointing to raw repository main branch instead of GitHub Actions / gh-pages
+      window.addEventListener('error', function(e) {
+        if (e.target && e.target.src && (e.target.src.includes('main.tsx') || e.target.src.endsWith('.tsx'))) {
+          var root = document.getElementById('root');
+          if (root && !root.hasChildNodes()) {
+            root.innerHTML = '<div style="display:flex;min-height:100vh;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;padding:24px;background:#0F766E;color:white;text-align:center;">' +
+              '<div style="max-width:520px;background:rgba(255,255,255,0.12);padding:32px;border-radius:24px;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 20px 40px rgba(0,0,0,0.2);">' +
+              '<div style="font-size:48px;margin-bottom:12px;">🕌</div>' +
+              '<h1 style="font-size:24px;font-weight:700;margin-bottom:8px;">Muslim Daily SuperApp</h1>' +
+              '<p style="font-size:15px;opacity:0.92;margin-bottom:20px;line-height:1.5;">GitHub Pages is currently serving the uncompiled repository source files instead of the production build.</p>' +
+              '<div style="font-size:13px;background:rgba(0,0,0,0.25);padding:16px;border-radius:14px;text-align:left;line-height:1.6;">' +
+              '<strong>How to activate your live app in 10 seconds:</strong><br/>' +
+              '1. Go to your GitHub repository <strong>Settings &rarr; Pages</strong><br/>' +
+              '2. Under <em>Build and deployment &rarr; Source</em>, select <strong>GitHub Actions</strong><br/>' +
+              '3. Trigger the workflow in <strong>Actions</strong> tab to deploy automatically!' +
+              '</div>' +
+              '</div></div>';
+          }
+        }
+      }, true);
+    </script>
+  </body>
+</html>
+
