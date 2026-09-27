@@ -6,8 +6,8 @@
  */
 
 import * as admin from "firebase-admin";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
+import { onDocumentCreated, FirestoreEvent, QueryDocumentSnapshot } from "firebase-functions/v2/firestore";
 
 // Initialize Firebase Admin SDK once in serverless context
 if (admin.apps.length === 0) {
@@ -54,7 +54,7 @@ export interface ZakatCalculationResult {
  */
 export const calculateZakatSummary = onCall<ZakatCalculationRequest>(
   { cors: true },
-  async (request): Promise<ZakatCalculationResult> => {
+  async (request: CallableRequest<ZakatCalculationRequest>): Promise<ZakatCalculationResult> => {
     const data = request.data;
 
     // Validate non-negative numbers
@@ -121,7 +121,7 @@ export const calculateZakatSummary = onCall<ZakatCalculationRequest>(
  */
 export const onUserProfileCreated = onDocumentCreated(
   "users/{userId}",
-  async (event) => {
+  async (event: FirestoreEvent<QueryDocumentSnapshot | undefined, { userId: string }>) => {
     const snapshot = event.data;
     if (!snapshot) return;
 
